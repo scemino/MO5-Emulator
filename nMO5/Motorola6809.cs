@@ -3341,7 +3341,7 @@ namespace nMO5
                             break;
 
                         default:
-                            System.Console.Error.WriteLine("opcode 10 " + Hex(opcode0X10, 2) + " not implemented");
+                            System.Console.Error.WriteLine("opcode 10 {0:X2} not implemented", opcode0X10);
                             System.Console.Error.WriteLine(PrintState());
                             break;
                     } // of case opcode0x10
@@ -3379,14 +3379,14 @@ namespace nMO5
                             break;
 
                         default:
-                            System.Console.Error.WriteLine("opcode 11" + Hex(opcode0X11, 2) + " not implemented");
+                            System.Console.Error.WriteLine("opcode 11 {0:X2} not implemented",opcode0X11);
                             System.Console.Error.WriteLine(PrintState());
                             break;
                     } // of case opcode 0x11 
                     break;
 
                 default:
-                    System.Console.Error.WriteLine("opcode " + Hex(opcode, 2) + " not implemented");
+                    System.Console.Error.WriteLine("opcode {0:X2} not implemented", opcode);
                     System.Console.Error.WriteLine(PrintState());
                     break;
             } // of case  opcode
@@ -3397,49 +3397,18 @@ namespace nMO5
         public string PrintState()
         {
             _cc = Getcc();
-            string s = "A=" + Hex(_a, 2) + " B=" + Hex(_b, 2);
-            s += " X=" + Hex(_x, 4) + " Y=" + Hex(_y, 4) + "\n";
-            s += "PC=" + Hex(Pc, 4) + " DP=" + Hex(_dp, 2);
-            s += " U=" + Hex(_u, 4) + " S=" + Hex(_s, 4);
-            s += " CC=" + Hex(_cc, 2);
-            return s;
+            var s = new StringBuilder();
+            s.AppendFormat(" A=  {0:X2}  B=  {1:X2}", _a, _b).AppendLine();
+			s.AppendFormat(" X={0:X4}  Y={1:X4}", _x, _y).AppendLine();
+			s.AppendFormat("PC={0:X4} DP={1:X4}", Pc, _dp).AppendLine();
+            s.AppendFormat(" U={0:X4}  S={1:X4}", _u, _s).AppendLine();
+            s.AppendFormat(" CC=  {0:X2}", _cc);
+            return s.ToString();
         }
 
         private string Hex(int val, int size)
         {
-            string output = "";
-            for (var t = 0; t < size; t++)
-            {
-                var coef = (size - t - 1) * 4;
-                var mask = 0xF << coef;
-                var q = (val & mask) >> coef;
-                if (q < 10) output = output + q;
-                else
-                {
-                    switch (q)
-                    {
-                        case 10:
-                            output = output + "A";
-                            break;
-                        case 11:
-                            output = output + "B";
-                            break;
-                        case 12:
-                            output = output + "C";
-                            break;
-                        case 13:
-                            output = output + "D";
-                            break;
-                        case 14:
-                            output = output + "E";
-                            break;
-                        case 15:
-                            output = output + "F";
-                            break;
-                    }
-                }
-            }
-            return output;
+            return val.ToString($"X{size}");
         }
 
 // force sign extension in a portable but ugly maneer

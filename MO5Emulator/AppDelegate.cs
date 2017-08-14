@@ -1,3 +1,4 @@
+using System.Linq;
 using AppKit;
 using Foundation;
 
@@ -6,10 +7,12 @@ namespace MO5Emulator
     [Register("AppDelegate")]
     public partial class AppDelegate : NSApplicationDelegate
     {
-        private GameView Game => ((MainWindow)NSApplication.SharedApplication.MainWindow).Game;
+        private GameView Game => NSApplication.SharedApplication.Windows.OfType<MainWindow>().First().Game;
+        CheatWindowController _cheatController;
 
         public AppDelegate()
         {
+            _cheatController = new CheatWindowController();
         }
 
         partial void HardReset(NSMenuItem sender)
@@ -22,6 +25,11 @@ namespace MO5Emulator
             Game.SoftReset();
         }
 
+        partial void Debug(NSMenuItem sender)
+        {
+			_cheatController.Window.MakeKeyAndOrderFront(this);
+        }
+
         [Export("openDocument:")]
         void OpenDialog(NSObject sender)
         {
@@ -32,7 +40,14 @@ namespace MO5Emulator
 			if (dlg.RunModal() == 1)
 			{
                 Game.OpenK7(dlg.Url.Path);
-			}
+                NSDocumentController.SharedDocumentController.NoteNewRecentDocumentURL(dlg.Url);
+            }
+        }
+
+        public override bool OpenFile(NSApplication sender, string filename)
+        {
+            Game.OpenK7(filename);
+            return true;
         }
 
         public override void DidFinishLaunching(NSNotification notification)

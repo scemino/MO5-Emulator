@@ -28,5 +28,22 @@
 	<string>Assets.xcassets/AppIcon.appiconset</string>
 	<key>CFBundleName</key>
 	<string>MO5 Emulator</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>.k7</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>K7 files</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>k7</string>
+			</array>
+			<key>NSDocumentClass</key>
+			<string>Document</string>
+		</dict>
+	</array>
 </dict>
 </plist>

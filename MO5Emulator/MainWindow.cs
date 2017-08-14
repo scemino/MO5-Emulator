@@ -4,7 +4,7 @@ using AppKit;
 
 namespace MO5Emulator
 {
-    public partial class MainWindow : NSWindow
+    internal partial class MainWindow : NSWindow
     {
         public GameView Game { get; set; }
 
@@ -27,6 +27,11 @@ namespace MO5Emulator
 
             // Run the game at 60 updates per second
             Game.Run(60.0);
+        }
+
+        public override void FlagsChanged(NSEvent theEvent)
+        {
+            Game.FlagsChanged(theEvent);
         }
 
         public override void KeyDown(NSEvent theEvent)

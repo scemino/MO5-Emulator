@@ -7,6 +7,8 @@
         private readonly Screen _screen;
         private bool _irq;
 
+        public Memory Memory => _mem;
+
         public Machine(Screen screen, ISound sound)
         {
             _mem = new Memory();

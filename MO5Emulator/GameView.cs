@@ -5,6 +5,8 @@ using CoreGraphics;
 using nMO5;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform.MacOS;
+using System.Linq;
+using MO5Emulator.Input;
 
 namespace MO5Emulator
 {
@@ -15,6 +17,8 @@ namespace MO5Emulator
         private Machine _machine;
         private Color[] _colors;
         private Sound _sound;
+
+        public Machine Machine => _machine;
 
         public GameView(CGRect frame)
         : base(frame)
@@ -69,6 +73,8 @@ namespace MO5Emulator
         {
             _machine.Step();
             _sound.UpdateQueue();
+            var debugWindow = NSApplication.SharedApplication.Windows.OfType<CheatWindow>().FirstOrDefault();
+            debugWindow?.UpdateValues();
 
             base.OnUpdateFrame(e);
         }
@@ -80,16 +86,65 @@ namespace MO5Emulator
             base.OnResize(e);
         }
 
+        public override void FlagsChanged(NSEvent theEvent)
+        {
+            if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask))
+            {
+                _machine.Keyboard.KeyPressed(Mo5Key.Shift);
+            }
+            else
+            {
+                _machine.Keyboard.KeyReleased(Mo5Key.Shift);
+            }
+            if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ControlKeyMask))
+            {
+                _machine.Keyboard.KeyPressed(Mo5Key.Control);
+            }
+            else
+            {
+                _machine.Keyboard.KeyReleased(Mo5Key.Control);
+            }
+            if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.CommandKeyMask))
+            {
+                _machine.Keyboard.KeyPressed(Mo5Key.Basic);
+            }
+            else
+            {
+                _machine.Keyboard.KeyReleased(Mo5Key.Basic);
+            }
+        }
+
         public override void KeyDown(NSEvent theEvent)
         {
+            if (theEvent.CharactersIgnoringModifiers.Length == 0) return;
             var c = theEvent.CharactersIgnoringModifiers[0];
-            _machine.Keyboard.KeyPressed(c);
+            Keyboard(c, _machine.Keyboard.KeyPressed);
         }
 
         public override void KeyUp(NSEvent theEvent)
         {
+            if (theEvent.CharactersIgnoringModifiers.Length == 0) return;
             var c = theEvent.CharactersIgnoringModifiers[0];
-            _machine.Keyboard.KeyReleased(c);
+            Keyboard(c, _machine.Keyboard.KeyReleased);
+        }
+
+        private void Keyboard(char c, Action<Mo5Key> action)
+        {
+            if (!KeyMappings.Keys.TryGetValue(c, out VirtualKey key))
+                return;
+            
+            if (key.ShiftKey.HasValue)
+            {
+                if (key.ShiftKey.Value)
+                {
+                    _machine.Keyboard.KeyPressed(Mo5Key.Shift);
+                }
+                else
+                {
+                    _machine.Keyboard.KeyReleased(Mo5Key.Shift);
+                }
+            }
+            action(key.Key);
         }
 
         public override void MouseDown(NSEvent theEvent)

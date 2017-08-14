@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace nMO5
 {
-    internal class Memory
+    public class Memory
     {
         private bool[] _dirty;
 
@@ -57,8 +58,41 @@ namespace nMO5
             return _mem[_mapper[page]][address & 0xFFF];
         }
 
-        // write with io
-        public void Write(int address, int value)
+		public int Read16(int address)
+		{
+            return Read(address)<<8|Read(address+1);
+		}
+
+        public List<int> Find8(int value)
+		{
+            var adresses = new List<int>();
+            for (int addr = 0x2200; addr <= 0x9FFF;addr++){
+                var memValue = Read(addr);
+                if(memValue == value){
+                    adresses.Add(addr);
+                }
+            }
+            return adresses;
+		}
+
+		public List<int> Find16(int value)
+		{
+			var adresses = new List<int>();
+			for (int addr = 0x2200; addr <= 0x9FFF; addr++)
+			{
+				var memValue = Read(addr);
+				memValue <<= 8;
+				memValue |= Read(addr + 1);
+				if (memValue == value)
+				{
+					adresses.Add(addr);
+				}
+			}
+			return adresses;
+		}
+
+		// write with io
+		public void Write(int address, int value)
         {
             var page = (address & 0xF000) >> 12;
 
@@ -76,6 +110,12 @@ namespace nMO5
             var page = (address & 0xF000) >> 12;
             _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
         }
+
+		public void Set16(int address, int value)
+		{
+            Set(address, value >> 8);
+            Set(address+1, value & 0xFF);
+		}
 
         public int Point(int address)
         {
