@@ -46,17 +46,6 @@
             _micro.Reset();
         }
 
-        // Debug Methods
-        public string DumpRegisters()
-        {
-            return _micro.PrintState();
-        }
-
-        public string DisassembleFromPc(int nblines)
-        {
-            return _micro.Disassemble(_micro.Pc, nblines);
-        }
-
         // the emulator main loop
         private void FullSpeed()
         {

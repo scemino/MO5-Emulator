@@ -19,17 +19,17 @@ namespace nMO5
         private bool[] _key;
         private int[] _mapper;
 
-// 0 1 			POINT 	2
-// 2 3 			COLOR 	2
-// 4 5 6 7   	RAM1 	4
-// 8 9 10 11 	RAM2 	4
-// 12			LINEA 	1
-// 13 			LINEB 	1
-// 14 15 16 17 	ROM 	4
+        // 0 1 			POINT 	2
+        // 2 3 			COLOR 	2
+        // 4 5 6 7   	RAM1 	4
+        // 8 9 10 11 	RAM2 	4
+        // 12			LINEA 	1
+        // 13 			LINEB 	1
+        // 14 15 16 17 	ROM 	4
 
         private int[][] _mem;
 
-/* Registres du 6821 */
+        /* Registres du 6821 */
         private int _ora;
 
         private int _orb;
@@ -39,7 +39,7 @@ namespace nMO5
         public int Crb { get; set; }
         public int SoundMem { get; private set; }
 
-// Lightpen parameters	
+        // Lightpen parameters	
         public bool LightPenClick { get; set; }
 
         public int LightPenX { get; set; }
@@ -58,41 +58,43 @@ namespace nMO5
             return _mem[_mapper[page]][address & 0xFFF];
         }
 
-		public int Read16(int address)
-		{
-            return Read(address)<<8|Read(address+1);
-		}
+        public int Read16(int address)
+        {
+            return Read(address) << 8 | Read(address + 1);
+        }
 
         public List<int> Find8(int value)
-		{
+        {
             var adresses = new List<int>();
-            for (int addr = 0x2200; addr <= 0x9FFF;addr++){
+            for (int addr = 0x2200; addr <= 0x9FFF; addr++)
+            {
                 var memValue = Read(addr);
-                if(memValue == value){
+                if (memValue == value)
+                {
                     adresses.Add(addr);
                 }
             }
             return adresses;
-		}
+        }
 
-		public List<int> Find16(int value)
-		{
-			var adresses = new List<int>();
-			for (int addr = 0x2200; addr <= 0x9FFF; addr++)
-			{
-				var memValue = Read(addr);
-				memValue <<= 8;
-				memValue |= Read(addr + 1);
-				if (memValue == value)
-				{
-					adresses.Add(addr);
-				}
-			}
-			return adresses;
-		}
+        public List<int> Find16(int value)
+        {
+            var adresses = new List<int>();
+            for (int addr = 0x2200; addr <= 0x9FFF; addr++)
+            {
+                var memValue = Read(addr);
+                memValue <<= 8;
+                memValue |= Read(addr + 1);
+                if (memValue == value)
+                {
+                    adresses.Add(addr);
+                }
+            }
+            return adresses;
+        }
 
-		// write with io
-		public void Write(int address, int value)
+        // write with io
+        public void Write(int address, int value)
         {
             var page = (address & 0xF000) >> 12;
 
@@ -111,11 +113,11 @@ namespace nMO5
             _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
         }
 
-		public void Set16(int address, int value)
-		{
+        public void Set16(int address, int value)
+        {
             Set(address, value >> 8);
-            Set(address+1, value & 0xFF);
-		}
+            Set(address + 1, value & 0xFF);
+        }
 
         public int Point(int address)
         {
@@ -148,11 +150,18 @@ namespace nMO5
 
         public void SetK7File(string k7)
         {
-            Console.WriteLine("opening:" + k7);
+            Console.WriteLine("opening: {0}", k7);
             try
             {
                 _k7Fis?.Dispose();
                 _k7Fis = File.OpenRead(k7);
+
+                var indexMax = _k7Fis.Length >> 9;
+                Console.WriteLine("Max index: {0}", indexMax);
+
+                K7Reader.Read(_k7Fis);
+                _k7Fis.Seek(0, SeekOrigin.Begin);
+
             }
             catch (Exception e)
             {
@@ -168,7 +177,7 @@ namespace nMO5
         {
             _k7Fis?.Seek(0, SeekOrigin.Begin);
         }
-        
+
         public void Periph(int pc, int s, int a)
         {
             var dataOut = new byte[1];
@@ -184,7 +193,7 @@ namespace nMO5
 
                 if (!IsOutFileOpened) return;
 
-                dataOut[0] = (byte) a;
+                dataOut[0] = (byte)a;
                 try
                 {
                     _k7Fos.Write(dataOut, 0, dataOut.Length);
@@ -305,7 +314,7 @@ namespace nMO5
             {
                 case 0xA7C0:
                     if ((_cra & 0x04) == 0x04)
-                        /* Accès à ORA */
+                    /* Accès à ORA */
                     {
                         if ((op & 0x01) == 0x01)
                         {
@@ -333,7 +342,7 @@ namespace nMO5
                     break;
                 case 0xA7C1:
                     if ((Crb & 0x04) == 0x04)
-                        /* Accès à ORB */
+                    /* Accès à ORB */
                     {
                         _orb = (_orb & (_ddrb ^ 0xFF)) | (op & _ddrb);
 
@@ -434,19 +443,19 @@ namespace nMO5
 
         private void PatchK7()
         {
-/*
+            /*
 
-	PATCH une partie des fonctions du moniteur
+                PATCH une partie des fonctions du moniteur
 
-	la squence 02 39 correspond 
-	Illegal (instruction)
-	NOP
-	le TRAP active la gestion des
-	priphriques, la valeur du
-	PC  ce moment permet de determiner
-	la fonction  effectuer
+                la squence 02 39 correspond 
+                Illegal (instruction)
+                NOP
+                le TRAP active la gestion des
+                priphriques, la valeur du
+                PC  ce moment permet de determiner
+                la fonction  effectuer
 
-*/
+            */
             // Crayon optique
             Set(0xf548, 0x02); // PER instruction émulateur
             Set(0xf549, 0x39); // RTS
