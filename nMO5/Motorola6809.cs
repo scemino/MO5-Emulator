@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿﻿using System.Text;
 using static nMO5.Util;
 
 namespace nMO5
@@ -9,32 +9,69 @@ namespace nMO5
 
         private readonly Memory _mem;
 
-// Sound emulation parameters
+        // Sound emulation parameters
         public byte[] SoundBuffer { get; }
 
         private int _soundAddr;
         private readonly ISound _play;
 
-        private int _cl;
+        private int _clock;
 
-// 8bits registers
-        private int _a;
+        /// <summary>
+        /// Program counter.
+        /// </summary>
+        public int Pc;
 
-        private int _b;
-        private int _dp;
-        private int _cc;
+		// 8bits registers
+		/// <summary>
+		/// Accumulator Register.
+		/// </summary>
+		public int A;
+		/// <summary>
+		/// Accumulator Register.
+		/// </summary>
+		public int B;
+        /// <summary>
+        /// Direct page register.
+        /// </summary>
+        public int Dp;
+        /// <summary>
+        /// Condition code register.
+        /// </summary>
+        public int Cc;
 
-// 16bits registers
-        private int _x;
+		// 16bits registers
+		/// <summary>
+		/// Index register.
+		/// </summary>
+		public int X;
+		/// <summary>
+		/// Index register.
+		/// </summary>
+		public int Y;
+		/// <summary>
+		/// Stack pointer register.
+		/// </summary>
+		public int U;
+		/// <summary>
+		/// Stack pointer register.
+		/// </summary>
+		public int S;
+		/// <summary>
+		/// Accumulator register: D=A+B.
+		/// </summary>
+        public int D
+        {
+            get { return (A << 8) | (B & 0xFF); }
+            set
+            {
+                A = value >> 8;
+                B = value & 0xFF;
+            }
+        }
 
-        private int _y;
-        private int _u;
-        private int _s;
-        private int _d; // D is A+B
-
-// fast CC bits (as ints) 
+        // fast CC bits (as ints) 
         private int _res;
-
         private int _m1;
         private int _m2;
         private int _sign;
@@ -48,37 +85,22 @@ namespace nMO5
             _mem = mem;
             _play = play;
 
-            // Sound emulation init
             SoundBuffer = new byte[SoundSize];
             _soundAddr = 0;
 
             Reset();
         }
 
-        public int Pc { get; private set; }
 
         public void Reset()
         {
             Pc = (_mem.Read(0xFFFE) << 8) | _mem.Read(0xFFFF);
-            _dp = 0x00;
-            _s = 0x8000;
-            _cc = 0x00;
+            Dp = 0x00;
+            S = 0x8000;
+            Cc = 0x00;
         }
 
-// recalculate A and B or D
-        private void Calcd()
-        {
-            _d = (_a << 8) | _b;
-        }
-
-        private void Calcab()
-        {
-            _a = _d >> 8;
-            _b = _d & 0xFF;
-        }
-
-
-// basic 6809 addressing modes
+        // basic 6809 addressing modes
         private int Immed8()
         {
             int m;
@@ -98,7 +120,7 @@ namespace nMO5
         private int Direc()
         {
             int m;
-            m = (_dp << 8) | _mem.Read(Pc);
+            m = (Dp << 8) | _mem.Read(Pc);
             Pc++;
             return m;
         }
@@ -131,72 +153,72 @@ namespace nMO5
                 switch (m & 0xE0)
                 {
                     case 0x00:
-                        reg = _x;
+                        reg = X;
                         break;
                     case 0x20:
-                        reg = _y;
+                        reg = Y;
                         break;
                     case 0x40:
-                        reg = _u;
+                        reg = U;
                         break;
                     case 0x60:
-                        reg = _s;
+                        reg = S;
                         break;
                     default: return 0;
                 }
-                _cl++;
+                _clock++;
                 return (reg + delta) & 0xFFFF;
             }
             switch (m)
             {
                 case 0x80: //i_d_P1_X
-                    M = _x;
-                    _x = (_x + 1) & 0xFFFF;
-                    _cl += 2;
+                    M = X;
+                    X = (X + 1) & 0xFFFF;
+                    _clock += 2;
                     return M;
                 case 0x81: //i_d_P2_X
-                    M = _x;
-                    _x = (_x + 2) & 0xFFFF;
-                    _cl += 3;
+                    M = X;
+                    X = (X + 2) & 0xFFFF;
+                    _clock += 3;
                     return M;
                 case 0x82: //i_d_M1_X
-                    _x = (_x - 1) & 0xFFFF;
-                    M = _x;
-                    _cl += 2;
+                    X = (X - 1) & 0xFFFF;
+                    M = X;
+                    _clock += 2;
                     return M;
                 case 0x83: //i_d_M2_X
-                    _x = (_x - 2) & 0xFFFF;
-                    M = _x;
-                    _cl += 3;
+                    X = (X - 2) & 0xFFFF;
+                    M = X;
+                    _clock += 3;
                     return M;
                 case 0x84: //i_d_X
-                    M = _x;
+                    M = X;
                     return M;
                 case 0x85: //i_d_B_X
-                    M = (_x + SignedChar(_b)) & 0xFFFF;
-                    _cl += 1;
+                    M = (X + SignedChar(B)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0x86: //i_d_A_X;
-                    M = (_x + SignedChar(_a)) & 0xFFFF;
-                    _cl += 1;
+                    M = (X + SignedChar(A)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0x87: return 0; //i_undoc;	/* empty */
                 case 0x88: //i_d_8_X;
                     m2 = _mem.Read(Pc);
                     Pc++;
-                    M = (_x + SignedChar(m2)) & 0xFFFF;
-                    _cl += 1;
+                    M = (X + SignedChar(m2)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0x89: //i_d_16_X;
                     m2 = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc += 2;
-                    M = (_x + Signed16Bits(m2)) & 0xFFFF;
-                    _cl += 4;
+                    M = (X + Signed16Bits(m2)) & 0xFFFF;
+                    _clock += 4;
                     return M;
                 case 0x8A: return 0; //i_undoc;	/* empty */
                 case 0x8B: //i_d_D_X;
-                    M = (_x + Signed16Bits((_a << 8) | _b)) & 0xFFFF;
-                    _cl += 4;
+                    M = (X + Signed16Bits((A << 8) | B)) & 0xFFFF;
+                    _clock += 4;
                     return M;
                 case 0x8C: //i_d_PC8;
                 case 0xAC: //i_d_PC8;
@@ -205,7 +227,7 @@ namespace nMO5
                     m = _mem.Read(Pc);
                     Pc = (Pc + 1) & 0xFFFF;
                     M = (Pc + SignedChar(m)) & 0xFFFF;
-                    _cl++;
+                    _clock++;
                     return M;
                 case 0x8D: //i_d_PC16;
                 case 0xAD: //i_d_PC16;
@@ -214,56 +236,56 @@ namespace nMO5
                     M = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc = (Pc + 2) & 0xFFFF;
                     M = (Pc + Signed16Bits(M)) & 0xFFFF;
-                    _cl += 5;
+                    _clock += 5;
                     return M;
                 case 0x8E: return 0; //i_undoc;	/* empty */
                 case 0x8F: return 0; //i_undoc;	/* empty */
                 case 0x90: return 0; //i_undoc;	/* empty */
                 case 0x91: //i_i_P2_X;
-                    M = (_mem.Read(_x) << 8) | _mem.Read(_x + 1);
-                    _x = (_x + 2) & 0xFFFF;
-                    _cl += 6;
+                    M = (_mem.Read(X) << 8) | _mem.Read(X + 1);
+                    X = (X + 2) & 0xFFFF;
+                    _clock += 6;
                     return M;
                 case 0x92: return 0; //i_undoc;	/* empty */
                 case 0x93: //i_i_M2_X;
-                    _x = (_x - 2) & 0xFFFF;
-                    M = (_mem.Read(_x) << 8) | _mem.Read(_x + 1);
-                    _cl += 6;
+                    X = (X - 2) & 0xFFFF;
+                    M = (_mem.Read(X) << 8) | _mem.Read(X + 1);
+                    _clock += 6;
                     return M;
                 case 0x94: //i_i_0_X;
-                    M = (_mem.Read(_x) << 8) | _mem.Read(_x + 1);
-                    _cl += 3;
+                    M = (_mem.Read(X) << 8) | _mem.Read(X + 1);
+                    _clock += 3;
                     return M;
                 case 0x95: //i_i_B_X;
-                    M = (_x + SignedChar(_b)) & 0xFFFF;
+                    M = (X + SignedChar(B)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0x96: //i_i_A_X;
-                    M = (_x + SignedChar(_a)) & 0xFFFF;
+                    M = (X + SignedChar(A)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0x97: return 0; //i_undoc;	/* empty */
                 case 0x98: //i_i_8_X;
                     m2 = _mem.Read(Pc);
                     Pc = (Pc + 1) & 0xFFFF;
-                    M = (_x + SignedChar(m2)) & 0xFFFF;
+                    M = (X + SignedChar(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0x99: //i_i_16_X;
                     m2 = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc = (Pc + 2) & 0xFFFF;
-                    M = (_x + Signed16Bits(m2)) & 0xFFFF;
+                    M = (X + Signed16Bits(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 7;
+                    _clock += 7;
                     return M;
                 case 0x9A: return 0; //i_undoc;	/* empty */
                 case 0x9B: //i_i_D_X;
-                    M = (_x + Signed16Bits((_a << 8) | _b)) & 0xFFFF;
+                    M = (X + Signed16Bits((A << 8) | B)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 7;
+                    _clock += 7;
                     return M;
                 case 0x9C: //i_i_PC8;
                 case 0xBC: //i_i_PC8;
@@ -273,7 +295,7 @@ namespace nMO5
                     Pc = (Pc + 1) & 0xFFFF;
                     M = (Pc + SignedChar(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0x9D: //i_i_PC16;
                 case 0xBD: //i_i_PC16;
@@ -283,7 +305,7 @@ namespace nMO5
                     Pc = (Pc + 2) & 0xFFFF;
                     M = (Pc + Signed16Bits(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 8;
+                    _clock += 8;
                     return M;
                 case 0x9E: return 0; //i_undoc;	/* empty */
                 case 0x9F: //i_i_e16;
@@ -293,308 +315,308 @@ namespace nMO5
                     m2 = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc = (Pc + 2) & 0xFFFF;
                     M = (_mem.Read(m2) << 8) | _mem.Read(m2 + 1);
-                    _cl += 5;
+                    _clock += 5;
                     return M;
                 // Y
                 case 0xA0: //i_d_P1_Y;
-                    M = _y;
-                    _y = (_y + 1) & 0xFFFF;
-                    _cl += 2;
+                    M = Y;
+                    Y = (Y + 1) & 0xFFFF;
+                    _clock += 2;
                     return M;
                 case 0xA1: //i_d_P2_Y;
-                    M = _y;
-                    _y = (_y + 2) & 0xFFFF;
-                    _cl += 3;
+                    M = Y;
+                    Y = (Y + 2) & 0xFFFF;
+                    _clock += 3;
                     return M;
                 case 0xA2: //i_d_M1_Y;
-                    _y = (_y - 1) & 0xFFFF;
-                    M = _y;
-                    _cl += 2;
+                    Y = (Y - 1) & 0xFFFF;
+                    M = Y;
+                    _clock += 2;
                     return M;
                 case 0xA3: //i_d_M2_Y;
-                    _y = (_y - 2) & 0xFFFF;
-                    M = _y;
-                    _cl += 3;
+                    Y = (Y - 2) & 0xFFFF;
+                    M = Y;
+                    _clock += 3;
                     return M;
                 case 0xA4: //i_d_Y;
-                    M = _y;
+                    M = Y;
                     return M;
                 case 0xA5: //i_d_B_Y;
-                    M = (_y + SignedChar(_b)) & 0xFFFF;
-                    _cl += 1;
+                    M = (Y + SignedChar(B)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0xA6: //i_d_A_Y;
-                    M = (_y + SignedChar(_a)) & 0xFFFF;
-                    _cl += 1;
+                    M = (Y + SignedChar(A)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0xA7: return 0; //i_undoc;	/* empty */
                 case 0xA8: //i_d_8_Y;
                     m2 = _mem.Read(Pc);
                     Pc++;
-                    M = (_y + SignedChar(m2)) & 0xFFFF;
-                    _cl += 1;
+                    M = (Y + SignedChar(m2)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0xA9: //i_d_16_Y;
                     m2 = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc += 2;
-                    M = (_y + Signed16Bits(m2)) & 0xFFFF;
-                    _cl += 4;
+                    M = (Y + Signed16Bits(m2)) & 0xFFFF;
+                    _clock += 4;
                     return M;
                 case 0xAA: return 0; //i_undoc;	/* empty */
                 case 0xAB: //i_d_D_Y;
-                    M = (_y + Signed16Bits((_a << 8) | _b)) & 0xFFFF;
-                    _cl += 4;
+                    M = (Y + Signed16Bits((A << 8) | B)) & 0xFFFF;
+                    _clock += 4;
                     return M;
                 case 0xAE: return 0; //i_undoc;	/* empty */
                 case 0xAF: return 0; //i_undoc;	/* empty */
                 case 0xB0: return 0; //i_undoc;	/* empty */
                 case 0xB1: //i_i_P2_Y;
-                    M = (_mem.Read(_y) << 8) | _mem.Read(_y + 1);
-                    _y = (_y + 2) & 0xFFFF;
-                    _cl += 6;
+                    M = (_mem.Read(Y) << 8) | _mem.Read(Y + 1);
+                    Y = (Y + 2) & 0xFFFF;
+                    _clock += 6;
                     return M;
                 case 0xB2: return 0; //i_undoc;	/* empty */
                 case 0xB3: //i_i_M2_Y;
-                    _y = (_y - 2) & 0xFFFF;
-                    M = (_mem.Read(_y) << 8) | _mem.Read(_y + 1);
-                    _cl += 6;
+                    Y = (Y - 2) & 0xFFFF;
+                    M = (_mem.Read(Y) << 8) | _mem.Read(Y + 1);
+                    _clock += 6;
                     return M;
                 case 0xB4: //i_i_0_Y;
-                    M = (_mem.Read(_y) << 8) | _mem.Read(_y + 1);
-                    _cl += 3;
+                    M = (_mem.Read(Y) << 8) | _mem.Read(Y + 1);
+                    _clock += 3;
                     return M;
                 case 0xB5: //i_i_B_Y;
-                    M = (_y + SignedChar(_b)) & 0xFFFF;
+                    M = (Y + SignedChar(B)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0xB6: //i_i_A_Y;
-                    M = (_y + SignedChar(_a)) & 0xFFFF;
+                    M = (Y + SignedChar(A)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0xB7: return 0; //i_undoc;	/* empty */
                 case 0xB8: //i_i_8_Y;
                     m2 = _mem.Read(Pc);
                     Pc = (Pc + 1) & 0xFFFF;
-                    M = (_y + SignedChar(m2)) & 0xFFFF;
+                    M = (Y + SignedChar(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0xB9: //i_i_16_Y;
                     m2 = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc = (Pc + 2) & 0xFFFF;
-                    M = (_y + Signed16Bits(m2)) & 0xFFFF;
+                    M = (Y + Signed16Bits(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 7;
+                    _clock += 7;
                     return M;
                 case 0xBA: return 0; //i_undoc;	/* empty */
                 case 0xBB: //i_i_D_Y;
-                    M = (_y + Signed16Bits((_a << 8) | _b)) & 0xFFFF;
+                    M = (Y + Signed16Bits((A << 8) | B)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 7;
+                    _clock += 7;
                     return M;
                 case 0xBE: return 0; //i_undoc;	/* empty */
 
                 // U
                 case 0xC0: //i_d_P1_U;
-                    M = _u;
-                    _u = (_u + 1) & 0xFFFF;
-                    _cl += 2;
+                    M = U;
+                    U = (U + 1) & 0xFFFF;
+                    _clock += 2;
                     return M;
                 case 0xC1: //i_d_P2_U;
-                    M = _u;
-                    _u = (_u + 2) & 0xFFFF;
-                    _cl += 3;
+                    M = U;
+                    U = (U + 2) & 0xFFFF;
+                    _clock += 3;
                     return M;
                 case 0xC2: //i_d_M1_U;
-                    _u = (_u - 1) & 0xFFFF;
-                    M = _u;
-                    _cl += 2;
+                    U = (U - 1) & 0xFFFF;
+                    M = U;
+                    _clock += 2;
                     return M;
                 case 0xC3: //i_d_M2_U;
-                    _u = (_u - 2) & 0xFFFF;
-                    M = _u;
-                    _cl += 3;
+                    U = (U - 2) & 0xFFFF;
+                    M = U;
+                    _clock += 3;
                     return M;
                 case 0xC4: //i_d_U;
-                    M = _u;
+                    M = U;
                     return M;
                 case 0xC5: //i_d_B_U;
-                    M = (_u + SignedChar(_b)) & 0xFFFF;
-                    _cl += 1;
+                    M = (U + SignedChar(B)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0xC6: //i_d_A_U;
-                    M = (_u + SignedChar(_a)) & 0xFFFF;
-                    _cl += 1;
+                    M = (U + SignedChar(A)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0xC7: return 0; //i_undoc;	/* empty */
                 case 0xC8: //i_d_8_U;
                     m2 = _mem.Read(Pc);
                     Pc++;
-                    M = (_u + SignedChar(m2)) & 0xFFFF;
-                    _cl += 1;
+                    M = (U + SignedChar(m2)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0xC9: //i_d_16_U;
                     m2 = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc += 2;
-                    M = (_u + Signed16Bits(m2)) & 0xFFFF;
-                    _cl += 4;
+                    M = (U + Signed16Bits(m2)) & 0xFFFF;
+                    _clock += 4;
                     return M;
                 case 0xCA: return 0; //i_undoc;	/* empty */
                 case 0xCB: //i_d_D_U;
-                    M = (_u + Signed16Bits((_a << 8) | _b)) & 0xFFFF;
-                    _cl += 4;
+                    M = (U + Signed16Bits((A << 8) | B)) & 0xFFFF;
+                    _clock += 4;
                     return M;
                 case 0xCE: return 0; //i_undoc;	/* empty */
                 case 0xCF: return 0; //i_undoc;	/* empty */
                 case 0xD0: return 0; //i_undoc;	/* empty */
                 case 0xD1: //i_i_P2_U;
-                    M = (_mem.Read(_u) << 8) | _mem.Read(_u + 1);
-                    _u = (_u + 2) & 0xFFFF;
-                    _cl += 6;
+                    M = (_mem.Read(U) << 8) | _mem.Read(U + 1);
+                    U = (U + 2) & 0xFFFF;
+                    _clock += 6;
                     return M;
                 case 0xD2: return 0; //i_undoc;	/* empty */
                 case 0xD3: //i_i_M2_U;
-                    _u = (_u - 2) & 0xFFFF;
-                    M = (_mem.Read(_u) << 8) | _mem.Read(_u + 1);
-                    _cl += 6;
+                    U = (U - 2) & 0xFFFF;
+                    M = (_mem.Read(U) << 8) | _mem.Read(U + 1);
+                    _clock += 6;
                     return M;
                 case 0xD4: //i_i_0_U;
-                    M = (_mem.Read(_u) << 8) | _mem.Read(_u + 1);
-                    _cl += 3;
+                    M = (_mem.Read(U) << 8) | _mem.Read(U + 1);
+                    _clock += 3;
                     return M;
                 case 0xD5: //i_i_B_U;
-                    M = (_u + SignedChar(_b)) & 0xFFFF;
+                    M = (U + SignedChar(B)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0xD6: //i_i_A_U;
-                    M = (_u + SignedChar(_a)) & 0xFFFF;
+                    M = (U + SignedChar(A)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0xD7: return 0; //i_undoc;	/* empty */
                 case 0xD8: //i_i_8_U;
                     m2 = _mem.Read(Pc);
                     Pc = (Pc + 1) & 0xFFFF;
-                    M = (_u + SignedChar(m2)) & 0xFFFF;
+                    M = (U + SignedChar(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0xD9: //i_i_16_U;
                     m2 = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc = (Pc + 2) & 0xFFFF;
-                    M = (_u + Signed16Bits(m2)) & 0xFFFF;
+                    M = (U + Signed16Bits(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 7;
+                    _clock += 7;
                     return M;
                 case 0xDA: return 0; //i_undoc;	/* empty */
                 case 0xDB: //i_i_D_U;
-                    M = (_u + Signed16Bits((_a << 8) | _b)) & 0xFFFF;
+                    M = (U + Signed16Bits((A << 8) | B)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 7;
+                    _clock += 7;
                     return M;
                 case 0xDE: return 0; //i_undoc;	/* empty */
 
                 // S
                 case 0xE0: //i_d_P1_S;
-                    M = _s;
-                    _s = (_s + 1) & 0xFFFF;
-                    _cl += 2;
+                    M = S;
+                    S = (S + 1) & 0xFFFF;
+                    _clock += 2;
                     return M;
                 case 0xE1: //i_d_P2_S;
-                    M = _s;
-                    _s = (_s + 2) & 0xFFFF;
-                    _cl += 3;
+                    M = S;
+                    S = (S + 2) & 0xFFFF;
+                    _clock += 3;
                     return M;
                 case 0xE2: //i_d_M1_S;
-                    _s = (_s - 1) & 0xFFFF;
-                    M = _s;
-                    _cl += 2;
+                    S = (S - 1) & 0xFFFF;
+                    M = S;
+                    _clock += 2;
                     return M;
                 case 0xE3: //i_d_M2_S;
-                    _s = (_s - 2) & 0xFFFF;
-                    M = _s;
-                    _cl += 3;
+                    S = (S - 2) & 0xFFFF;
+                    M = S;
+                    _clock += 3;
                     return M;
                 case 0xE4: //i_d_S;
-                    M = _s;
+                    M = S;
                     return M;
                 case 0xE5: //i_d_B_S;
-                    M = (_s + SignedChar(_b)) & 0xFFFF;
-                    _cl += 1;
+                    M = (S + SignedChar(B)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0xE6: //i_d_A_S;
-                    M = (_s + SignedChar(_a)) & 0xFFFF;
-                    _cl += 1;
+                    M = (S + SignedChar(A)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0xE7: return 0; //i_undoc;	/* empty */
                 case 0xE8: //i_d_8_S;
                     m2 = _mem.Read(Pc);
                     Pc++;
-                    M = (_s + SignedChar(m2)) & 0xFFFF;
-                    _cl += 1;
+                    M = (S + SignedChar(m2)) & 0xFFFF;
+                    _clock += 1;
                     return M;
                 case 0xE9: //i_d_16_S;
                     m2 = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc += 2;
-                    M = (_s + Signed16Bits(m2)) & 0xFFFF;
-                    _cl += 4;
+                    M = (S + Signed16Bits(m2)) & 0xFFFF;
+                    _clock += 4;
                     return M;
                 case 0xEA: return 0; //i_undoc;	/* empty */
                 case 0xEB: //i_d_D_S;
-                    M = (_s + Signed16Bits((_a << 8) | _b)) & 0xFFFF;
-                    _cl += 4;
+                    M = (S + Signed16Bits((A << 8) | B)) & 0xFFFF;
+                    _clock += 4;
                     return M;
                 case 0xEE: return 0; //i_undoc;	/* empty */
                 case 0xEF: return 0; //i_undoc;	/* empty */
                 case 0xF0: return 0; //i_undoc;	/* empty */
                 case 0xF1: //i_i_P2_S;
-                    M = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                    _s = (_s + 2) & 0xFFFF;
-                    _cl += 6;
+                    M = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                    S = (S + 2) & 0xFFFF;
+                    _clock += 6;
                     return M;
                 case 0xF2: return 0; //i_undoc;	/* empty */
                 case 0xF3: //i_i_M2_S;
-                    _s = (_s - 2) & 0xFFFF;
-                    M = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                    _cl += 6;
+                    S = (S - 2) & 0xFFFF;
+                    M = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                    _clock += 6;
                     return M;
                 case 0xF4: //i_i_0_S;
-                    M = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                    _cl += 3;
+                    M = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                    _clock += 3;
                     return M;
                 case 0xF5: //i_i_B_S;
-                    M = (_s + SignedChar(_b)) & 0xFFFF;
+                    M = (S + SignedChar(B)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0xF6: //i_i_A_S;
-                    M = (_s + SignedChar(_a)) & 0xFFFF;
+                    M = (S + SignedChar(A)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0xF7: return 0; //i_undoc;	/* empty */
                 case 0xF8: //i_i_8_S;
                     m2 = _mem.Read(Pc);
                     Pc = (Pc + 1) & 0xFFFF;
-                    M = (_s + SignedChar(m2)) & 0xFFFF;
+                    M = (S + SignedChar(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 4;
+                    _clock += 4;
                     return M;
                 case 0xF9: //i_i_16_S;
                     m2 = (_mem.Read(Pc) << 8) | _mem.Read(Pc + 1);
                     Pc = (Pc + 2) & 0xFFFF;
-                    M = (_s + Signed16Bits(m2)) & 0xFFFF;
+                    M = (S + Signed16Bits(m2)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 7;
+                    _clock += 7;
                     return M;
                 case 0xFA: return 0; //i_undoc;	/* empty */
                 case 0xFB: //i_i_D_S;
-                    M = (_s + Signed16Bits((_a << 8) | _b)) & 0xFFFF;
+                    M = (S + Signed16Bits((A << 8) | B)) & 0xFFFF;
                     M = (_mem.Read(M) << 8) | _mem.Read(M + 1);
-                    _cl += 7;
+                    _clock += 7;
                     return M;
                 case 0xFE: return 0; //i_undoc;	/* empty */
             }
@@ -606,20 +628,20 @@ namespace nMO5
         private int Getcc()
         {
             if ((_res & 0xff) == 0)
-                _cc = ((((_h1 & 15) + (_h2 & 15)) & 16) << 1)
+                Cc = ((((_h1 & 15) + (_h2 & 15)) & 16) << 1)
                       | ((_sign & 0x80) >> 4)
                       | 4
                       | ((~(_m1 ^ _m2) & (_m1 ^ _ovfl) & 0x80) >> 6)
                       | ((_res & 0x100) >> 8)
                       | _ccrest;
             else
-                _cc = ((((_h1 & 15) + (_h2 & 15)) & 16) << 1)
+                Cc = ((((_h1 & 15) + (_h2 & 15)) & 16) << 1)
                       | ((_sign & 0x80) >> 4)
                       | ((~(_m1 ^ _m2) & (_m1 ^ _ovfl) & 0x80) >> 6)
                       | ((_res & 0x100) >> 8)
                       | _ccrest;
 
-            return _cc;
+            return Cc;
         }
 
 // calculate CC fast bits from CC register
@@ -636,7 +658,7 @@ namespace nMO5
         public int ReadCc()
         {
             Getcc();
-            return _cc;
+            return Cc;
         }
 
 // LDx
@@ -645,7 +667,7 @@ namespace nMO5
             _sign = _mem.Read(m);
             _m1 = _ovfl;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
             return _sign;
         }
 
@@ -656,7 +678,7 @@ namespace nMO5
             _m1 = _ovfl;
             _sign = r >> 8;
             _res = (_res & 0x100) | ((_sign | r) & 0xFF);
-            _cl += c;
+            _clock += c;
             return r;
         }
 
@@ -667,7 +689,7 @@ namespace nMO5
             _m1 = _ovfl;
             _sign = r;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void St16(int r, int adr, int c)
@@ -677,7 +699,7 @@ namespace nMO5
             _m1 = _ovfl;
             _sign = r >> 8;
             _res = (_res & 0x100) | ((_sign | r) & 0xFF);
-            _cl += c;
+            _clock += c;
         }
 
 // LEA
@@ -685,7 +707,7 @@ namespace nMO5
         {
             int r = Indexe();
             _res = (_res & 0x100) | ((r | (r >> 8)) & 0xFF);
-            _cl += 4;
+            _clock += 4;
             return r;
         }
 
@@ -695,7 +717,7 @@ namespace nMO5
             _mem.Write(m, 0);
             _m1 = ~_m2;
             _sign = _res = 0;
-            _cl += c;
+            _clock += c;
         }
 
 // EXG
@@ -714,19 +736,19 @@ namespace nMO5
             switch (r1)
             {
                 case 0x00:
-                    k = (_a << 8) | _b;
+                    k = (A << 8) | B;
                     break;
                 case 0x01:
-                    k = _x;
+                    k = X;
                     break;
                 case 0x02:
-                    k = _y;
+                    k = Y;
                     break;
                 case 0x03:
-                    k = _u;
+                    k = U;
                     break;
                 case 0x04:
-                    k = _s;
+                    k = S;
                     break;
                 case 0x05:
                     k = Pc;
@@ -738,16 +760,16 @@ namespace nMO5
                     k = Getcc();
                     break;
                 case 0x08:
-                    k = _a;
+                    k = A;
                     break;
                 case 0x09:
-                    k = _b;
+                    k = B;
                     break;
                 case 0x0A:
                     k = Getcc();
                     break;
                 case 0x0B:
-                    k = _dp;
+                    k = Dp;
                     break;
                 case 0x0C:
                     k = Getcc();
@@ -765,25 +787,25 @@ namespace nMO5
             switch (r2)
             {
                 case 0x00:
-                    l = (_a << 8) | _b;
-                    _a = (k >> 8) & 255;
-                    _b = k & 255;
+                    l = (A << 8) | B;
+                    A = (k >> 8) & 255;
+                    B = k & 255;
                     break;
                 case 0x01:
-                    l = _x;
-                    _x = k;
+                    l = X;
+                    X = k;
                     break;
                 case 0x02:
-                    l = _y;
-                    _y = k;
+                    l = Y;
+                    Y = k;
                     break;
                 case 0x03:
-                    l = _u;
-                    _u = k;
+                    l = U;
+                    U = k;
                     break;
                 case 0x04:
-                    l = _s;
-                    _s = k;
+                    l = S;
+                    S = k;
                     break;
                 case 0x05:
                     l = Pc;
@@ -798,20 +820,20 @@ namespace nMO5
                     Setcc(k);
                     break;
                 case 0x08:
-                    l = _a;
-                    _a = k & 0xff;
+                    l = A;
+                    A = k & 0xff;
                     break;
                 case 0x09:
-                    l = _b;
-                    _b = k & 0xff;
+                    l = B;
+                    B = k & 0xff;
                     break;
                 case 0x0A:
                     l = Getcc();
                     Setcc(k);
                     break;
                 case 0x0B:
-                    l = _dp;
-                    _dp = k & 0xff;
+                    l = Dp;
+                    Dp = k & 0xff;
                     break;
                 case 0x0C:
                     l = Getcc();
@@ -833,20 +855,20 @@ namespace nMO5
             switch (r1)
             {
                 case 0x00:
-                    _a = (l >> 8) & 255;
-                    _b = l & 255;
+                    A = (l >> 8) & 255;
+                    B = l & 255;
                     break;
                 case 0x01:
-                    _x = l;
+                    X = l;
                     break;
                 case 0x02:
-                    _y = l;
+                    Y = l;
                     break;
                 case 0x03:
-                    _u = l;
+                    U = l;
                     break;
                 case 0x04:
-                    _s = l;
+                    S = l;
                     break;
                 case 0x05:
                     Pc = l;
@@ -858,16 +880,16 @@ namespace nMO5
                     Setcc(l);
                     break;
                 case 0x08:
-                    _a = l & 0xff;
+                    A = l & 0xff;
                     break;
                 case 0x09:
-                    _b = l & 0xff;
+                    B = l & 0xff;
                     break;
                 case 0x0A:
                     Setcc(l);
                     break;
                 case 0x0B:
-                    _dp = l & 0xff;
+                    Dp = l & 0xff;
                     break;
                 case 0x0C:
                     Setcc(l);
@@ -882,7 +904,7 @@ namespace nMO5
                     Setcc(l);
                     break;
             } // of second switch r1
-            _cl += 8;
+            _clock += 8;
         }
 
         private void Tfr()
@@ -898,19 +920,19 @@ namespace nMO5
             switch (r1)
             {
                 case 0x00:
-                    k = (_a << 8) | _b;
+                    k = (A << 8) | B;
                     break;
                 case 0x01:
-                    k = _x;
+                    k = X;
                     break;
                 case 0x02:
-                    k = _y;
+                    k = Y;
                     break;
                 case 0x03:
-                    k = _u;
+                    k = U;
                     break;
                 case 0x04:
-                    k = _s;
+                    k = S;
                     break;
                 case 0x05:
                     k = Pc;
@@ -922,16 +944,16 @@ namespace nMO5
                     k = Getcc();
                     break;
                 case 0x08:
-                    k = _a;
+                    k = A;
                     break;
                 case 0x09:
-                    k = _b;
+                    k = B;
                     break;
                 case 0x0A:
                     k = Getcc();
                     break;
                 case 0x0B:
-                    k = _dp;
+                    k = Dp;
                     break;
                 case 0x0C:
                     k = Getcc();
@@ -949,20 +971,20 @@ namespace nMO5
             switch (r2)
             {
                 case 0x00:
-                    _a = (k >> 8) & 255;
-                    _b = k & 255;
+                    A = (k >> 8) & 255;
+                    B = k & 255;
                     break;
                 case 0x01:
-                    _x = k;
+                    X = k;
                     break;
                 case 0x02:
-                    _y = k;
+                    Y = k;
                     break;
                 case 0x03:
-                    _u = k;
+                    U = k;
                     break;
                 case 0x04:
-                    _s = k;
+                    S = k;
                     break;
                 case 0x05:
                     Pc = k;
@@ -974,16 +996,16 @@ namespace nMO5
                     Setcc(k);
                     break;
                 case 0x08:
-                    _a = k & 0xff;
+                    A = k & 0xff;
                     break;
                 case 0x09:
-                    _b = k & 0xff;
+                    B = k & 0xff;
                     break;
                 case 0x0A:
                     Setcc(k);
                     break;
                 case 0x0B:
-                    _dp = k & 0xff;
+                    Dp = k & 0xff;
                     break;
                 case 0x0C:
                     Setcc(k);
@@ -1006,62 +1028,62 @@ namespace nMO5
             m = _mem.Read(Pc++);
             if ((m & 0x80) != 0)
             {
-                _s--;
-                _mem.Write(_s, Pc & 0x00FF);
-                _s--;
-                _mem.Write(_s, Pc >> 8);
-                _cl += 2;
+                S--;
+                _mem.Write(S, Pc & 0x00FF);
+                S--;
+                _mem.Write(S, Pc >> 8);
+                _clock += 2;
             }
             if ((m & 0x40) != 0)
             {
-                _s--;
-                _mem.Write(_s, _u & 0x00FF);
-                _s--;
-                _mem.Write(_s, _u >> 8);
-                _cl += 2;
+                S--;
+                _mem.Write(S, U & 0x00FF);
+                S--;
+                _mem.Write(S, U >> 8);
+                _clock += 2;
             }
             if ((m & 0x20) != 0)
             {
-                _s--;
-                _mem.Write(_s, _y & 0x00FF);
-                _s--;
-                _mem.Write(_s, _y >> 8);
-                _cl += 2;
+                S--;
+                _mem.Write(S, Y & 0x00FF);
+                S--;
+                _mem.Write(S, Y >> 8);
+                _clock += 2;
             }
             if ((m & 0x10) != 0)
             {
-                _s--;
-                _mem.Write(_s, _x & 0x00FF);
-                _s--;
-                _mem.Write(_s, _x >> 8);
-                _cl += 2;
+                S--;
+                _mem.Write(S, X & 0x00FF);
+                S--;
+                _mem.Write(S, X >> 8);
+                _clock += 2;
             }
             if ((m & 0x08) != 0)
             {
-                _s--;
-                _mem.Write(_s, _dp);
-                _cl++;
+                S--;
+                _mem.Write(S, Dp);
+                _clock++;
             }
             if ((m & 0x04) != 0)
             {
-                _s--;
-                _mem.Write(_s, _b);
-                _cl++;
+                S--;
+                _mem.Write(S, B);
+                _clock++;
             }
             if ((m & 0x02) != 0)
             {
-                _s--;
-                _mem.Write(_s, _a);
-                _cl++;
+                S--;
+                _mem.Write(S, A);
+                _clock++;
             }
             if ((m & 0x01) != 0)
             {
-                _s--;
+                S--;
                 Getcc();
-                _mem.Write(_s, _cc);
-                _cl++;
+                _mem.Write(S, Cc);
+                _clock++;
             }
-            _cl += 5;
+            _clock += 5;
         }
 
         private void Pshu()
@@ -1070,62 +1092,62 @@ namespace nMO5
             m = _mem.Read(Pc++);
             if ((m & 0x80) != 0)
             {
-                _u--;
-                _mem.Write(_u, Pc & 0x00FF);
-                _u--;
-                _mem.Write(_u, Pc >> 8);
-                _cl += 2;
+                U--;
+                _mem.Write(U, Pc & 0x00FF);
+                U--;
+                _mem.Write(U, Pc >> 8);
+                _clock += 2;
             }
             if ((m & 0x40) != 0)
             {
-                _u--;
-                _mem.Write(_u, _s & 0x00FF);
-                _u--;
-                _mem.Write(_u, _s >> 8);
-                _cl += 2;
+                U--;
+                _mem.Write(U, S & 0x00FF);
+                U--;
+                _mem.Write(U, S >> 8);
+                _clock += 2;
             }
             if ((m & 0x20) != 0)
             {
-                _u--;
-                _mem.Write(_u, _y & 0x00FF);
-                _u--;
-                _mem.Write(_u, _y >> 8);
-                _cl += 2;
+                U--;
+                _mem.Write(U, Y & 0x00FF);
+                U--;
+                _mem.Write(U, Y >> 8);
+                _clock += 2;
             }
             if ((m & 0x10) != 0)
             {
-                _u--;
-                _mem.Write(_u, _x & 0x00FF);
-                _u--;
-                _mem.Write(_u, _x >> 8);
-                _cl += 2;
+                U--;
+                _mem.Write(U, X & 0x00FF);
+                U--;
+                _mem.Write(U, X >> 8);
+                _clock += 2;
             }
             if ((m & 0x08) != 0)
             {
-                _u--;
-                _mem.Write(_u, _dp);
-                _cl++;
+                U--;
+                _mem.Write(U, Dp);
+                _clock++;
             }
             if ((m & 0x04) != 0)
             {
-                _u--;
-                _mem.Write(_u, _b);
-                _cl++;
+                U--;
+                _mem.Write(U, B);
+                _clock++;
             }
             if ((m & 0x02) != 0)
             {
-                _u--;
-                _mem.Write(_u, _a);
-                _cl++;
+                U--;
+                _mem.Write(U, A);
+                _clock++;
             }
             if ((m & 0x01) != 0)
             {
-                _u--;
+                U--;
                 Getcc();
-                _mem.Write(_u, _cc);
-                _cl++;
+                _mem.Write(U, Cc);
+                _clock++;
             }
-            _cl += 5;
+            _clock += 5;
         }
 
         private void Puls()
@@ -1134,54 +1156,54 @@ namespace nMO5
             m = _mem.Read(Pc++);
             if ((m & 0x01) != 0)
             {
-                _cc = _mem.Read(_s);
-                Setcc(_cc);
-                _s++;
-                _cl++;
+                Cc = _mem.Read(S);
+                Setcc(Cc);
+                S++;
+                _clock++;
             }
             if ((m & 0x02) != 0)
             {
-                _a = _mem.Read(_s);
-                _s++;
-                _cl++;
+                A = _mem.Read(S);
+                S++;
+                _clock++;
             }
             if ((m & 0x04) != 0)
             {
-                _b = _mem.Read(_s);
-                _s++;
-                _cl++;
+                B = _mem.Read(S);
+                S++;
+                _clock++;
             }
             if ((m & 0x08) != 0)
             {
-                _dp = _mem.Read(_s);
-                _s++;
-                _cl++;
+                Dp = _mem.Read(S);
+                S++;
+                _clock++;
             }
             if ((m & 0x10) != 0)
             {
-                _x = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                _s += 2;
-                _cl += 2;
+                X = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                S += 2;
+                _clock += 2;
             }
             if ((m & 0x20) != 0)
             {
-                _y = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                _s += 2;
-                _cl += 2;
+                Y = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                S += 2;
+                _clock += 2;
             }
             if ((m & 0x40) != 0)
             {
-                _u = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                _s += 2;
-                _cl += 2;
+                U = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                S += 2;
+                _clock += 2;
             }
             if ((m & 0x80) != 0)
             {
-                Pc = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                _s += 2;
-                _cl += 2;
+                Pc = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                S += 2;
+                _clock += 2;
             }
-            _cl += 5;
+            _clock += 5;
         }
 
         private void Pulu()
@@ -1190,74 +1212,74 @@ namespace nMO5
             m = _mem.Read(Pc++);
             if ((m & 0x01) != 0)
             {
-                _cc = _mem.Read(_u);
-                Setcc(_cc);
-                _u++;
-                _cl++;
+                Cc = _mem.Read(U);
+                Setcc(Cc);
+                U++;
+                _clock++;
             }
             if ((m & 0x02) != 0)
             {
-                _a = _mem.Read(_u);
-                _u++;
-                _cl++;
+                A = _mem.Read(U);
+                U++;
+                _clock++;
             }
             if ((m & 0x04) != 0)
             {
-                _b = _mem.Read(_u);
-                _u++;
-                _cl++;
+                B = _mem.Read(U);
+                U++;
+                _clock++;
             }
             if ((m & 0x08) != 0)
             {
-                _dp = _mem.Read(_u);
-                _u++;
-                _cl++;
+                Dp = _mem.Read(U);
+                U++;
+                _clock++;
             }
             if ((m & 0x10) != 0)
             {
-                _x = (_mem.Read(_u) << 8) | _mem.Read(_u + 1);
-                _u += 2;
-                _cl += 2;
+                X = (_mem.Read(U) << 8) | _mem.Read(U + 1);
+                U += 2;
+                _clock += 2;
             }
             if ((m & 0x20) != 0)
             {
-                _y = (_mem.Read(_u) << 8) | _mem.Read(_u + 1);
-                _u += 2;
-                _cl += 2;
+                Y = (_mem.Read(U) << 8) | _mem.Read(U + 1);
+                U += 2;
+                _clock += 2;
             }
             if ((m & 0x40) != 0)
             {
-                _s = (_mem.Read(_u) << 8) | _mem.Read(_u + 1);
-                _u += 2;
-                _cl += 2;
+                S = (_mem.Read(U) << 8) | _mem.Read(U + 1);
+                U += 2;
+                _clock += 2;
             }
             if ((m & 0x80) != 0)
             {
-                Pc = (_mem.Read(_u) << 8) | _mem.Read(_u + 1);
-                _u += 2;
-                _cl += 2;
+                Pc = (_mem.Read(U) << 8) | _mem.Read(U + 1);
+                U += 2;
+                _clock += 2;
             }
-            _cl += 5;
+            _clock += 5;
         }
 
         private void Inca()
         {
-            _m1 = _a;
+            _m1 = A;
             _m2 = 0;
-            _a = (_a + 1) & 0xFF;
-            _ovfl = _sign = _a;
+            A = (A + 1) & 0xFF;
+            _ovfl = _sign = A;
             _res = (_res & 0x100) | _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Incb()
         {
-            _m1 = _b;
+            _m1 = B;
             _m2 = 0;
-            _b = (_b + 1) & 0xFF;
-            _ovfl = _sign = _b;
+            B = (B + 1) & 0xFF;
+            _ovfl = _sign = B;
             _res = (_res & 0x100) | _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Inc(int adr, int c)
@@ -1270,28 +1292,28 @@ namespace nMO5
             _mem.Write(adr, val);
             _ovfl = _sign = val & 0xFF;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
 // DEC
         private void Deca()
         {
-            _m1 = _a;
+            _m1 = A;
             _m2 = 0x80;
-            _a = (_a - 1) & 0xFF;
-            _ovfl = _sign = _a;
+            A = (A - 1) & 0xFF;
+            _ovfl = _sign = A;
             _res = (_res & 0x100) | _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Decb()
         {
-            _m1 = _b;
+            _m1 = B;
             _m2 = 0x80;
-            _b = (_b - 1) & 0xFF;
-            _ovfl = _sign = _b;
+            B = (B - 1) & 0xFF;
+            _ovfl = _sign = B;
             _res = (_res & 0x100) | _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Dec(int adr, int c)
@@ -1304,7 +1326,7 @@ namespace nMO5
             _mem.Write(adr, val);
             _ovfl = _sign = val & 0xFF;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Bit(int r, int adr, int c)
@@ -1314,7 +1336,7 @@ namespace nMO5
             _m1 = _ovfl;
             _sign = r & val;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Cmp8(int r, int adr, int c)
@@ -1324,7 +1346,7 @@ namespace nMO5
             _m1 = r;
             _m2 = -val;
             _ovfl = _res = _sign = r - val;
-            _cl += c;
+            _clock += c;
         }
 
         private void Cmp16(int r, int adr, int c)
@@ -1335,24 +1357,24 @@ namespace nMO5
             _m2 = -val >> 8;
             _ovfl = _res = _sign = ((r - val) >> 8) & 0xFFFFFF;
             _res |= (r - val) & 0xFF;
-            _cl += c;
+            _clock += c;
         }
 
 // TST
         private void TstAi()
         {
             _m1 = _ovfl;
-            _sign = _a;
+            _sign = A;
             _res = (_res & 0x100) | _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void TstBi()
         {
             _m1 = _ovfl;
-            _sign = _b;
+            _sign = B;
             _res = (_res & 0x100) | _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Tst(int adr, int c)
@@ -1362,7 +1384,7 @@ namespace nMO5
             _m1 = ~_m2;
             _sign = val;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Anda(int adr, int c)
@@ -1370,10 +1392,10 @@ namespace nMO5
             int val;
             val = _mem.Read(adr);
             _m1 = _ovfl;
-            _a &= val;
-            _sign = _a;
+            A &= val;
+            _sign = A;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Andb(int adr, int c)
@@ -1381,10 +1403,10 @@ namespace nMO5
             int val;
             val = _mem.Read(adr);
             _m1 = _ovfl;
-            _b &= val;
-            _sign = _b;
+            B &= val;
+            _sign = B;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Andcc(int adr, int c)
@@ -1392,9 +1414,9 @@ namespace nMO5
             int val;
             val = _mem.Read(adr);
 //	getcc();
-            _cc &= val;
-            Setcc(_cc);
-            _cl += c;
+            Cc &= val;
+            Setcc(Cc);
+            _clock += c;
         }
 
         private void Ora(int adr, int c)
@@ -1402,10 +1424,10 @@ namespace nMO5
             int val;
             val = _mem.Read(adr);
             _m1 = _ovfl;
-            _a |= val;
-            _sign = _a;
+            A |= val;
+            _sign = A;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Orb(int adr, int c)
@@ -1413,10 +1435,10 @@ namespace nMO5
             int val;
             val = _mem.Read(adr);
             _m1 = _ovfl;
-            _b |= val;
-            _sign = _b;
+            B |= val;
+            _sign = B;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Orcc(int adr, int c)
@@ -1424,9 +1446,9 @@ namespace nMO5
             int val;
             val = _mem.Read(adr);
             Getcc();
-            _cc |= val;
-            Setcc(_cc);
-            _cl += c;
+            Cc |= val;
+            Setcc(Cc);
+            _clock += c;
         }
 
         private void Eora(int adr, int c)
@@ -1434,10 +1456,10 @@ namespace nMO5
             int val;
             val = _mem.Read(adr);
             _m1 = _ovfl;
-            _a ^= val;
-            _sign = _a;
+            A ^= val;
+            _sign = A;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Eorb(int adr, int c)
@@ -1445,28 +1467,28 @@ namespace nMO5
             int val;
             val = _mem.Read(adr);
             _m1 = _ovfl;
-            _b ^= val;
-            _sign = _b;
+            B ^= val;
+            _sign = B;
             _res = (_res & 0x100) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Coma()
         {
             _m1 = _ovfl;
-            _a = ~_a & 0xFF;
-            _sign = _a;
+            A = ~A & 0xFF;
+            _sign = A;
             _res = _sign | 0x100;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Comb()
         {
             _m1 = _ovfl;
-            _b = ~_b & 0xFF;
-            _sign = _b;
+            B = ~B & 0xFF;
+            _sign = B;
             _res = _sign | 0x100;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Com(int adr, int c)
@@ -1478,27 +1500,27 @@ namespace nMO5
             _mem.Write(adr, val);
             _sign = val;
             _res = _sign | 0x100;
-            _cl += c;
+            _clock += c;
         }
 
         private void Nega()
         {
-            _m1 = _a;
-            _m2 = -_a;
-            _a = -_a;
-            _ovfl = _res = _sign = _a;
-            _a &= 0xFF;
-            _cl += 2;
+            _m1 = A;
+            _m2 = -A;
+            A = -A;
+            _ovfl = _res = _sign = A;
+            A &= 0xFF;
+            _clock += 2;
         }
 
         private void Negb()
         {
-            _m1 = _b;
-            _m2 = -_b;
-            _b = -_b;
-            _ovfl = _res = _sign = _b;
-            _b &= 0xFF;
-            _cl += 2;
+            _m1 = B;
+            _m2 = -B;
+            B = -B;
+            _ovfl = _res = _sign = B;
+            B &= 0xFF;
+            _clock += 2;
         }
 
         private void Neg(int adr, int c)
@@ -1510,178 +1532,178 @@ namespace nMO5
             val = -val;
             _mem.Write(adr, val);
             _ovfl = _res = _sign = val;
-            _cl += c;
+            _clock += c;
         }
 
         private void Abx()
         {
-            _x = (_x + _b) & 0xFFFF;
-            _cl += 3;
+            X = (X + B) & 0xFFFF;
+            _clock += 3;
         }
 
         private void Adda(int adr, int c)
         {
             int val;
             val = _mem.Read(adr);
-            _m1 = _h1 = _a;
+            _m1 = _h1 = A;
             _m2 = _h2 = val;
-            _a += val;
-            _ovfl = _res = _sign = _a;
-            _a &= 0xFF;
-            _cl += c;
+            A += val;
+            _ovfl = _res = _sign = A;
+            A &= 0xFF;
+            _clock += c;
         }
 
         private void Addb(int adr, int c)
         {
             int val;
             val = _mem.Read(adr);
-            _m1 = _h1 = _b;
+            _m1 = _h1 = B;
             _m2 = _h2 = val;
-            _b += val;
-            _ovfl = _res = _sign = _b;
-            _b &= 0xFF;
-            _cl += c;
+            B += val;
+            _ovfl = _res = _sign = B;
+            B &= 0xFF;
+            _clock += c;
         }
 
         private void Addd(int adr, int c)
         {
             int val;
             val = (_mem.Read(adr) << 8) | _mem.Read(adr + 1);
-            _m1 = _a;
+            _m1 = A;
             _m2 = val >> 8;
-            _d = (_a << 8) + _b + val;
-            _a = _d >> 8;
-            _b = _d & 0xFF;
-            _ovfl = _res = _sign = _a;
-            _res |= _b;
-            _a &= 0xFF;
-            _cl += c;
+            D = (A << 8) + B + val;
+            A = D >> 8;
+            B = D & 0xFF;
+            _ovfl = _res = _sign = A;
+            _res |= B;
+            A &= 0xFF;
+            _clock += c;
         }
 
         private void Adca(int adr, int c)
         {
             int val;
             val = _mem.Read(adr);
-            _m1 = _h1 = _a;
+            _m1 = _h1 = A;
             _m2 = val;
             _h2 = val + ((_res & 0x100) >> 8);
-            _a += _h2;
-            _ovfl = _res = _sign = _a;
-            _a &= 0xFF;
-            _cl += c;
+            A += _h2;
+            _ovfl = _res = _sign = A;
+            A &= 0xFF;
+            _clock += c;
         }
 
         private void Adcb(int adr, int c)
         {
             int val;
             val = _mem.Read(adr);
-            _m1 = _h1 = _b;
+            _m1 = _h1 = B;
             _m2 = val;
             _h2 = val + ((_res & 0x100) >> 8);
-            _b += _h2;
-            _ovfl = _res = _sign = _b;
-            _b &= 0xFF;
-            _cl += c;
+            B += _h2;
+            _ovfl = _res = _sign = B;
+            B &= 0xFF;
+            _clock += c;
         }
 
         private void Mul()
         {
             int k;
-            k = _a * _b;
-            _a = (k >> 8) & 0xFF;
-            _b = k & 0xFF;
-            _res = ((_b & 0x80) << 1) | ((k | (k >> 8)) & 0xFF);
-            _cl += 11;
+            k = A * B;
+            A = (k >> 8) & 0xFF;
+            B = k & 0xFF;
+            _res = ((B & 0x80) << 1) | ((k | (k >> 8)) & 0xFF);
+            _clock += 11;
         }
 
         private void Sbca(int adr, int c)
         {
             int val;
             val = _mem.Read(adr);
-            _m1 = _a;
+            _m1 = A;
             _m2 = -val;
-            _a -= val + ((_res & 0x100) >> 8);
-            _ovfl = _res = _sign = _a;
-            _a &= 0xFF;
-            _cl += c;
+            A -= val + ((_res & 0x100) >> 8);
+            _ovfl = _res = _sign = A;
+            A &= 0xFF;
+            _clock += c;
         }
 
         private void Sbcb(int adr, int c)
         {
             int val;
             val = _mem.Read(adr);
-            _m1 = _b;
+            _m1 = B;
             _m2 = -val;
-            _b -= val + ((_res & 0x100) >> 8);
-            _ovfl = _res = _sign = _b;
-            _b &= 0xFF;
-            _cl += c;
+            B -= val + ((_res & 0x100) >> 8);
+            _ovfl = _res = _sign = B;
+            B &= 0xFF;
+            _clock += c;
         }
 
         private void Suba(int adr, int c)
         {
             int val;
             val = _mem.Read(adr);
-            _m1 = _a;
+            _m1 = A;
             _m2 = -val;
-            _a -= val;
-            _ovfl = _res = _sign = _a;
-            _a &= 0xFF;
-            _cl += c;
+            A -= val;
+            _ovfl = _res = _sign = A;
+            A &= 0xFF;
+            _clock += c;
         }
 
         private void Subb(int adr, int c)
         {
             int val;
             val = _mem.Read(adr);
-            _m1 = _b;
+            _m1 = B;
             _m2 = -val;
-            _b -= val;
-            _ovfl = _res = _sign = _b;
-            _b &= 0xFF;
-            _cl += c;
+            B -= val;
+            _ovfl = _res = _sign = B;
+            B &= 0xFF;
+            _clock += c;
         }
 
         private void Subd(int adr, int c)
         {
             int val;
             val = (_mem.Read(adr) << 8) | _mem.Read(adr + 1);
-            _m1 = _a;
+            _m1 = A;
             _m2 = -val >> 8;
-            _d = (_a << 8) + _b - val;
-            _a = _d >> 8;
-            _b = _d & 0xFF;
-            _ovfl = _res = _sign = _a;
-            _res |= _b;
-            _a &= 0xFF;
-            _cl += c;
+            D = (A << 8) + B - val;
+            A = D >> 8;
+            B = D & 0xFF;
+            _ovfl = _res = _sign = A;
+            _res |= B;
+            A &= 0xFF;
+            _clock += c;
         }
 
         private void Sex()
         {
-            if ((_b & 0x80) == 0x80) _a = 0xFF;
-            else _a = 0;
-            _sign = _b;
+            if ((B & 0x80) == 0x80) A = 0xFF;
+            else A = 0;
+            _sign = B;
             _res = (_res & 0x100) | _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Asla()
         {
-            _m1 = _m2 = _a;
-            _a <<= 1;
-            _ovfl = _sign = _res = _a;
-            _a &= 0xFF;
-            _cl += 2;
+            _m1 = _m2 = A;
+            A <<= 1;
+            _ovfl = _sign = _res = A;
+            A &= 0xFF;
+            _clock += 2;
         }
 
         private void Aslb()
         {
-            _m1 = _m2 = _b;
-            _b <<= 1;
-            _ovfl = _sign = _res = _b;
-            _b &= 0xFF;
-            _cl += 2;
+            _m1 = _m2 = B;
+            B <<= 1;
+            _ovfl = _sign = _res = B;
+            B &= 0xFF;
+            _clock += 2;
         }
 
         private void Asl(int adr, int c)
@@ -1692,25 +1714,25 @@ namespace nMO5
             val <<= 1;
             _mem.Write(adr, val);
             _ovfl = _sign = _res = val;
-            _cl += c;
+            _clock += c;
         }
 
         private void Asra()
         {
-            _res = (_a & 1) << 8;
-            _a = (_a >> 1) | (_a & 0x80);
-            _sign = _a;
+            _res = (A & 1) << 8;
+            A = (A >> 1) | (A & 0x80);
+            _sign = A;
             _res |= _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Asrb()
         {
-            _res = (_b & 1) << 8;
-            _b = (_b >> 1) | (_b & 0x80);
-            _sign = _b;
+            _res = (B & 1) << 8;
+            B = (B >> 1) | (B & 0x80);
+            _sign = B;
             _res |= _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Asr(int adr, int c)
@@ -1721,25 +1743,25 @@ namespace nMO5
             _mem.Write(adr, val);
             _sign = val;
             _res |= _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Lsra()
         {
-            _res = (_a & 1) << 8;
-            _a = _a >> 1;
+            _res = (A & 1) << 8;
+            A = A >> 1;
             _sign = 0;
-            _res |= _a;
-            _cl += 2;
+            _res |= A;
+            _clock += 2;
         }
 
         private void Lsrb()
         {
-            _res = (_b & 1) << 8;
-            _b = _b >> 1;
+            _res = (B & 1) << 8;
+            B = B >> 1;
             _sign = 0;
-            _res |= _b;
-            _cl += 2;
+            _res |= B;
+            _clock += 2;
         }
 
         private void Lsr(int adr, int c)
@@ -1751,25 +1773,25 @@ namespace nMO5
             _mem.Write(adr, val);
             _sign = 0;
             _res |= val;
-            _cl += c;
+            _clock += c;
         }
 
         private void Rola()
         {
-            _m1 = _m2 = _a;
-            _a = (_a << 1) | ((_res & 0x100) >> 8);
-            _ovfl = _sign = _res = _a;
-            _a &= 0xFF;
-            _cl += 2;
+            _m1 = _m2 = A;
+            A = (A << 1) | ((_res & 0x100) >> 8);
+            _ovfl = _sign = _res = A;
+            A &= 0xFF;
+            _clock += 2;
         }
 
         private void Rolb()
         {
-            _m1 = _m2 = _b;
-            _b = (_b << 1) | ((_res & 0x100) >> 8);
-            _ovfl = _sign = _res = _b;
-            _b &= 0xFF;
-            _cl += 2;
+            _m1 = _m2 = B;
+            B = (B << 1) | ((_res & 0x100) >> 8);
+            _ovfl = _sign = _res = B;
+            B &= 0xFF;
+            _clock += 2;
         }
 
         private void Rol(int adr, int c)
@@ -1780,27 +1802,27 @@ namespace nMO5
             val = (val << 1) | ((_res & 0x100) >> 8);
             _mem.Write(adr, val);
             _ovfl = _sign = _res = val;
-            _cl += c;
+            _clock += c;
         }
 
         private void Rora()
         {
             int i;
-            i = _a;
-            _a = (_a | (_res & 0x100)) >> 1;
-            _sign = _a;
+            i = A;
+            A = (A | (_res & 0x100)) >> 1;
+            _sign = A;
             _res = ((i & 1) << 8) | _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Rorb()
         {
             int i;
-            i = _b;
-            _b = (_b | (_res & 0x100)) >> 1;
-            _sign = _b;
+            i = B;
+            B = (B | (_res & 0x100)) >> 1;
+            _sign = B;
             _res = ((i & 1) << 8) | _sign;
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Ror(int adr, int c)
@@ -1812,7 +1834,7 @@ namespace nMO5
             _mem.Write(adr, val);
             _sign = val;
             _res = ((i & 1) << 8) | _sign;
-            _cl += c;
+            _clock += c;
         }
 
         private void Bra()
@@ -1820,7 +1842,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbra()
@@ -1832,15 +1854,15 @@ namespace nMO5
             m = _mem.Read(Pc++);
             off |= m;
             Pc = (Pc + off) & 0xFFFF;
-            _cl += 5;
+            _clock += 5;
         }
 
         private void JmPd()
         {
             int m;
             m = _mem.Read(Pc++);
-            Pc = (_dp << 8) | m;
-            _cl += 3;
+            Pc = (Dp << 8) | m;
+            _clock += 3;
         }
 
         private void JmPe()
@@ -1848,7 +1870,7 @@ namespace nMO5
             int adr;
             adr = Etend();
             Pc = adr;
-            _cl += 4;
+            _clock += 4;
         }
 
         private void JmPx()
@@ -1856,19 +1878,19 @@ namespace nMO5
             int adr;
             adr = Indexe();
             Pc = adr;
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Bsr()
         {
             int m;
             m = _mem.Read(Pc++);
-            _s--;
-            _mem.Write(_s, Pc & 0x00FF);
-            _s--;
-            _mem.Write(_s, Pc >> 8);
+            S--;
+            _mem.Write(S, Pc & 0x00FF);
+            S--;
+            _mem.Write(S, Pc >> 8);
             Pc += SignedChar(m);
-            _cl += 7;
+            _clock += 7;
         }
 
         private void Lbsr()
@@ -1879,73 +1901,73 @@ namespace nMO5
             off = m << 8;
             m = _mem.Read(Pc++);
             off |= m;
-            _s--;
-            _mem.Write(_s, Pc & 0x00FF);
-            _s--;
-            _mem.Write(_s, Pc >> 8);
+            S--;
+            _mem.Write(S, Pc & 0x00FF);
+            S--;
+            _mem.Write(S, Pc >> 8);
             Pc = (Pc + off) & 0xFFFF;
-            _cl += 9;
+            _clock += 9;
         }
 
         private void JsRd()
         {
             int m;
             m = _mem.Read(Pc++);
-            _s--;
-            _mem.Write(_s, Pc & 0x00FF);
-            _s--;
-            _mem.Write(_s, Pc >> 8);
-            Pc = (_dp << 8) | m;
-            _cl += 7;
+            S--;
+            _mem.Write(S, Pc & 0x00FF);
+            S--;
+            _mem.Write(S, Pc >> 8);
+            Pc = (Dp << 8) | m;
+            _clock += 7;
         }
 
         private void JsRe()
         {
             int adr;
             adr = Etend();
-            _s--;
-            _mem.Write(_s, Pc & 0x00FF);
-            _s--;
-            _mem.Write(_s, Pc >> 8);
+            S--;
+            _mem.Write(S, Pc & 0x00FF);
+            S--;
+            _mem.Write(S, Pc >> 8);
             Pc = adr;
-            _cl += 8;
+            _clock += 8;
         }
 
         private void JsRx()
         {
             int adr;
             adr = Indexe();
-            _s--;
-            _mem.Write(_s, Pc & 0x00FF);
-            _s--;
-            _mem.Write(_s, Pc >> 8);
+            S--;
+            _mem.Write(S, Pc & 0x00FF);
+            S--;
+            _mem.Write(S, Pc >> 8);
             Pc = adr;
-            _cl += 7;
+            _clock += 7;
         }
 
         private void Brn()
         {
             _mem.Read(Pc++);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbrn()
         {
             _mem.Read(Pc++);
             _mem.Read(Pc++);
-            _cl += 5;
+            _clock += 5;
         }
 
         private void Nop()
         {
-            _cl += 2;
+            _clock += 2;
         }
 
         private void Rts()
         {
-            Pc = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-            _s += 2;
-            _cl += 5;
+            Pc = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+            S += 2;
+            _clock += 5;
         }
 
 /* Branchements conditionnels */
@@ -1955,7 +1977,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if ((_res & 0x100) != 0x100) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbcc()
@@ -1969,9 +1991,9 @@ namespace nMO5
             if ((_res & 0x100) != 0x100)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Bcs()
@@ -1979,7 +2001,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if ((_res & 0x100) == 0x100) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbcs()
@@ -1993,9 +2015,9 @@ namespace nMO5
             if ((_res & 0x100) == 0x100)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Beq()
@@ -2003,7 +2025,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if ((_res & 0xff) == 0x00) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbeq()
@@ -2017,9 +2039,9 @@ namespace nMO5
             if ((_res & 0xff) == 0x00)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 6;
+            else _clock += 6;
         }
 
         private void Bne()
@@ -2027,7 +2049,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if ((_res & 0xff) != 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbne()
@@ -2041,9 +2063,9 @@ namespace nMO5
             if ((_res & 0xff) != 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Bge()
@@ -2051,7 +2073,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if (((_sign ^ (~(_m1 ^ _m2) & (_m1 ^ _ovfl))) & 0x80) == 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbge()
@@ -2065,9 +2087,9 @@ namespace nMO5
             if (((_sign ^ (~(_m1 ^ _m2) & (_m1 ^ _ovfl))) & 0x80) == 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Ble()
@@ -2076,7 +2098,7 @@ namespace nMO5
             m = _mem.Read(Pc++);
             if ((_res & 0xff) == 0
                 || ((_sign ^ (~(_m1 ^ _m2) & (_m1 ^ _ovfl))) & 0x80) != 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lble()
@@ -2091,9 +2113,9 @@ namespace nMO5
                 || ((_sign ^ (~(_m1 ^ _m2) & (_m1 ^ _ovfl))) & 0x80) != 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Bls()
@@ -2101,7 +2123,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if ((_res & 0x100) != 0 || (_res & 0xff) == 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbls()
@@ -2115,9 +2137,9 @@ namespace nMO5
             if ((_res & 0x100) != 0 || (_res & 0xff) == 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Bgt()
@@ -2126,7 +2148,7 @@ namespace nMO5
             m = _mem.Read(Pc++);
             if ((_res & 0xff) != 0
                 && ((_sign ^ (~(_m1 ^ _m2) & (_m1 ^ _ovfl))) & 0x80) == 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbgt()
@@ -2141,9 +2163,9 @@ namespace nMO5
                 && ((_sign ^ (~(_m1 ^ _m2) & (_m1 ^ _ovfl))) & 0x80) == 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Blt()
@@ -2151,7 +2173,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if (((_sign ^ (~(_m1 ^ _m2) & (_m1 ^ _ovfl))) & 0x80) != 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lblt()
@@ -2165,9 +2187,9 @@ namespace nMO5
             if (((_sign ^ (~(_m1 ^ _m2) & (_m1 ^ _ovfl))) & 0x80) != 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Bhi()
@@ -2175,7 +2197,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if ((_res & 0x100) == 0 && (_res & 0xff) != 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbhi()
@@ -2189,9 +2211,9 @@ namespace nMO5
             if ((_res & 0x100) == 0 && (_res & 0xff) != 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            _cl += 5;
+            _clock += 5;
         }
 
         private void Bmi()
@@ -2199,7 +2221,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if ((_sign & 0x80) != 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbmi()
@@ -2213,9 +2235,9 @@ namespace nMO5
             if ((_sign & 0x80) != 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Bpl()
@@ -2223,7 +2245,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if ((_sign & 0x80) == 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbpl()
@@ -2237,9 +2259,9 @@ namespace nMO5
             if ((_sign & 0x80) == 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Bvs()
@@ -2247,7 +2269,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if (((_m1 ^ _m2) & 0x80) == 0 && ((_m1 ^ _ovfl) & 0x80) != 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbvs()
@@ -2261,9 +2283,9 @@ namespace nMO5
             if (((_m1 ^ _m2) & 0x80) == 0 && ((_m1 ^ _ovfl) & 0x80) != 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Bvc()
@@ -2271,7 +2293,7 @@ namespace nMO5
             int m;
             m = _mem.Read(Pc++);
             if (((_m1 ^ _m2) & 0x80) != 0 || ((_m1 ^ _ovfl) & 0x80) == 0) Pc += SignedChar(m);
-            _cl += 3;
+            _clock += 3;
         }
 
         private void Lbvc()
@@ -2285,132 +2307,132 @@ namespace nMO5
             if (((_m1 ^ _m2) & 0x80) != 0 || ((_m1 ^ _ovfl) & 0x80) == 0)
             {
                 Pc = (Pc + off) & 0xFFFF;
-                _cl += 6;
+                _clock += 6;
             }
-            else _cl += 5;
+            else _clock += 5;
         }
 
         private void Swi()
         {
             Getcc();
-            _cc |= 0x80; /* bit E � 1 */
-            Setcc(_cc);
-            _s--;
-            _mem.Write(_s, Pc & 0x00FF);
-            _s--;
-            _mem.Write(_s, Pc >> 8);
-            _s--;
-            _mem.Write(_s, _u & 0x00FF);
-            _s--;
-            _mem.Write(_s, _u >> 8);
-            _s--;
-            _mem.Write(_s, _y & 0x00FF);
-            _s--;
-            _mem.Write(_s, _y >> 8);
-            _s--;
-            _mem.Write(_s, _x & 0x00FF);
-            _s--;
-            _mem.Write(_s, _x >> 8);
-            _s--;
-            _mem.Write(_s, _dp);
-            _s--;
-            _mem.Write(_s, _b);
-            _s--;
-            _mem.Write(_s, _a);
-            _s--;
-            _mem.Write(_s, _cc);
+            Cc |= 0x80; /* bit E � 1 */
+            Setcc(Cc);
+            S--;
+            _mem.Write(S, Pc & 0x00FF);
+            S--;
+            _mem.Write(S, Pc >> 8);
+            S--;
+            _mem.Write(S, U & 0x00FF);
+            S--;
+            _mem.Write(S, U >> 8);
+            S--;
+            _mem.Write(S, Y & 0x00FF);
+            S--;
+            _mem.Write(S, Y >> 8);
+            S--;
+            _mem.Write(S, X & 0x00FF);
+            S--;
+            _mem.Write(S, X >> 8);
+            S--;
+            _mem.Write(S, Dp);
+            S--;
+            _mem.Write(S, B);
+            S--;
+            _mem.Write(S, A);
+            S--;
+            _mem.Write(S, Cc);
 
             Pc = (_mem.Read(0xFFFA) << 8) | _mem.Read(0xFFFB);
-            _cl += 19;
+            _clock += 19;
         }
 
         private void Rti()
         {
-            _cc = _mem.Read(_s);
-            Setcc(_cc);
-            _s++;
-            if ((_cc & 0x80) == 0x80)
+            Cc = _mem.Read(S);
+            Setcc(Cc);
+            S++;
+            if ((Cc & 0x80) == 0x80)
             {
-                _a = _mem.Read(_s);
-                _s++;
-                _b = _mem.Read(_s);
-                _s++;
-                _dp = _mem.Read(_s);
-                _s++;
-                _x = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                _s += 2;
-                _y = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                _s += 2;
-                _u = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-                _s += 2;
-                _cl += 15;
+                A = _mem.Read(S);
+                S++;
+                B = _mem.Read(S);
+                S++;
+                Dp = _mem.Read(S);
+                S++;
+                X = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                S += 2;
+                Y = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                S += 2;
+                U = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+                S += 2;
+                _clock += 15;
             }
-            else _cl += 6;
+            else _clock += 6;
 
-            Pc = (_mem.Read(_s) << 8) | _mem.Read(_s + 1);
-            _s += 2;
+            Pc = (_mem.Read(S) << 8) | _mem.Read(S + 1);
+            S += 2;
         }
 
         public void Irq()
         {
             /* mise � 1 du bit E sur le CC */
             Getcc();
-            _cc |= 0x80;
-            Setcc(_cc);
-            _s--;
-            _mem.Write(_s, Pc & 0x00FF);
-            _s--;
-            _mem.Write(_s, Pc >> 8);
-            _s--;
-            _mem.Write(_s, _u & 0x00FF);
-            _s--;
-            _mem.Write(_s, _u >> 8);
-            _s--;
-            _mem.Write(_s, _y & 0x00FF);
-            _s--;
-            _mem.Write(_s, _y >> 8);
-            _s--;
-            _mem.Write(_s, _x & 0x00FF);
-            _s--;
-            _mem.Write(_s, _x >> 8);
-            _s--;
-            _mem.Write(_s, _dp);
-            _s--;
-            _mem.Write(_s, _b);
-            _s--;
-            _mem.Write(_s, _a);
-            _s--;
-            _mem.Write(_s, _cc);
+            Cc |= 0x80;
+            Setcc(Cc);
+            S--;
+            _mem.Write(S, Pc & 0x00FF);
+            S--;
+            _mem.Write(S, Pc >> 8);
+            S--;
+            _mem.Write(S, U & 0x00FF);
+            S--;
+            _mem.Write(S, U >> 8);
+            S--;
+            _mem.Write(S, Y & 0x00FF);
+            S--;
+            _mem.Write(S, Y >> 8);
+            S--;
+            _mem.Write(S, X & 0x00FF);
+            S--;
+            _mem.Write(S, X >> 8);
+            S--;
+            _mem.Write(S, Dp);
+            S--;
+            _mem.Write(S, B);
+            S--;
+            _mem.Write(S, A);
+            S--;
+            _mem.Write(S, Cc);
             Pc = (_mem.Read(0xFFF8) << 8) | _mem.Read(0xFFF9);
-            _cc |= 0x10;
-            Setcc(_cc);
-            _cl += 19;
+            Cc |= 0x10;
+            Setcc(Cc);
+            _clock += 19;
         }
 
         private void Daa()
         {
-            int i = _a + (_res & 0x100);
-            if ((_a & 15) > 9 || (_h1 & 15) + (_h2 & 15) > 15) i += 6;
+            int i = A + (_res & 0x100);
+            if ((A & 15) > 9 || (_h1 & 15) + (_h2 & 15) > 15) i += 6;
             if (i > 0x99) i += 0x60;
             _res = _sign = i;
-            _a = i & 255;
-            _cl += 2;
+            A = i & 255;
+            _clock += 2;
         }
 
         private void Cwai()
         {
             Getcc();
-            _cc &= _mem.Read(Pc);
-            Setcc(_cc);
+            Cc &= _mem.Read(Pc);
+            Setcc(Cc);
             Pc++;
-            _cl += 20;
+            _clock += 20;
         }
 
         public int FetchUntil(int clock)
         {
-            while (_cl < clock) Fetch();
-            _cl -= clock;
-            return _cl;
+            while (_clock < clock) Fetch();
+            _clock -= clock;
+            return _clock;
         }
 
         public void Fetch()
@@ -2428,177 +2450,170 @@ namespace nMO5
                 // the mystery undocumented opcode
                 case 0x01:
                     Pc++;
-                    _cl += 2;
+                    _clock += 2;
                     break;
 
                 // PER (instruction d'emulation de périphérique)
                 case 0x02:
-                    _mem.Periph(Pc, _s, _a);
+                    _mem.Periph(Pc, S, A);
                     break;
 
                 // LDA
                 case 0x86:
-                    _a = Ld8(Immed8(), 2);
+                    A = Ld8(Immed8(), 2);
                     break;
                 case 0x96:
-                    _a = Ld8(Direc(), 4);
+                    A = Ld8(Direc(), 4);
                     break;
                 case 0xB6:
-                    _a = Ld8(Etend(), 5);
+                    A = Ld8(Etend(), 5);
                     break;
                 case 0xA6:
-                    _a = Ld8(Indexe(), 4);
+                    A = Ld8(Indexe(), 4);
                     break;
 
                 // LDB
                 case 0xC6:
-                    _b = Ld8(Immed8(), 2);
+                    B = Ld8(Immed8(), 2);
                     break;
                 case 0xD6:
-                    _b = Ld8(Direc(), 4);
+                    B = Ld8(Direc(), 4);
                     break;
                 case 0xF6:
-                    _b = Ld8(Etend(), 5);
+                    B = Ld8(Etend(), 5);
                     break;
                 case 0xE6:
-                    _b = Ld8(Indexe(), 4);
+                    B = Ld8(Indexe(), 4);
                     break;
 
                 // LDD
                 case 0xCC:
-                    _d = Ld16(Immed16(), 3);
-                    Calcab();
+                    D = Ld16(Immed16(), 3);
                     break;
                 case 0xDC:
-                    _d = Ld16(Direc(), 5);
-                    Calcab();
+                    D = Ld16(Direc(), 5);
                     break;
                 case 0xFC:
-                    _d = Ld16(Etend(), 6);
-                    Calcab();
+                    D = Ld16(Etend(), 6);
                     break;
                 case 0xEC:
-                    _d = Ld16(Indexe(), 5);
-                    Calcab();
+                    D = Ld16(Indexe(), 5);
                     break;
 
                 // LDU
                 case 0xCE:
-                    _u = Ld16(Immed16(), 3);
+                    U = Ld16(Immed16(), 3);
                     break;
                 case 0xDE:
-                    _u = Ld16(Direc(), 5);
+                    U = Ld16(Direc(), 5);
                     break;
                 case 0xFE:
-                    _u = Ld16(Etend(), 6);
+                    U = Ld16(Etend(), 6);
                     break;
                 case 0xEE:
-                    _u = Ld16(Indexe(), 5);
+                    U = Ld16(Indexe(), 5);
                     break;
 
 
                 // LDX
                 case 0x8E:
-                    _x = Ld16(Immed16(), 3);
+                    X = Ld16(Immed16(), 3);
                     break;
                 case 0x9E:
-                    _x = Ld16(Direc(), 5);
+                    X = Ld16(Direc(), 5);
                     break;
                 case 0xBE:
-                    _x = Ld16(Etend(), 6);
+                    X = Ld16(Etend(), 6);
                     break;
                 case 0xAE:
-                    _x = Ld16(Indexe(), 5);
+                    X = Ld16(Indexe(), 5);
                     break;
 
                 // STA 
                 case 0x97:
-                    St8(_a, Direc(), 4);
+                    St8(A, Direc(), 4);
                     break;
                 case 0xB7:
-                    St8(_a, Etend(), 5);
+                    St8(A, Etend(), 5);
                     break;
                 case 0xA7:
-                    St8(_a, Indexe(), 4);
+                    St8(A, Indexe(), 4);
                     break;
 
 // STB
                 case 0xD7:
-                    St8(_b, Direc(), 4);
+                    St8(B, Direc(), 4);
                     break;
                 case 0xF7:
-                    St8(_b, Etend(), 5);
+                    St8(B, Etend(), 5);
                     break;
                 case 0xE7:
-                    St8(_b, Indexe(), 4);
+                    St8(B, Indexe(), 4);
                     break;
 
 // STD
                 case 0xDD:
-                    Calcd();
-                    St16(_d, Direc(), 5);
+                    St16(D, Direc(), 5);
                     break;
                 case 0xFD:
-                    Calcd();
-                    St16(_d, Etend(), 6);
+                    St16(D, Etend(), 6);
                     break;
                 case 0xED:
-                    Calcd();
-                    St16(_d, Indexe(), 6);
+                    St16(D, Indexe(), 6);
                     break;
 
 // STU
                 case 0xDF:
-                    St16(_u, Direc(), 5);
+                    St16(U, Direc(), 5);
                     break;
                 case 0xFF:
-                    St16(_u, Etend(), 6);
+                    St16(U, Etend(), 6);
                     break;
                 case 0xEF:
-                    St16(_u, Indexe(), 5);
+                    St16(U, Indexe(), 5);
                     break;
 
 // STX
                 case 0x9F:
-                    St16(_x, Direc(), 5);
+                    St16(X, Direc(), 5);
                     break;
                 case 0xBF:
-                    St16(_x, Etend(), 6);
+                    St16(X, Etend(), 6);
                     break;
                 case 0xAF:
-                    St16(_x, Indexe(), 5);
+                    St16(X, Indexe(), 5);
                     break;
 
 // LEAS
                 case 0x32:
-                    _s = Indexe();
+                    S = Indexe();
                     break;
 // LEAU
                 case 0x33:
-                    _u = Indexe();
+                    U = Indexe();
                     break;
 // LEAX
                 case 0x30:
-                    _x = Lea();
+                    X = Lea();
                     break;
 // LEAY
                 case 0x31:
-                    _y = Lea();
+                    Y = Lea();
                     break;
 
 // CLRA
                 case 0x4F:
-                    _a = 0;
+                    A = 0;
                     _m1 = _ovfl;
                     _sign = _res = 0;
-                    _cl += 2;
+                    _clock += 2;
                     break;
 // CLRB
                 case 0x5F:
-                    _b = 0;
+                    B = 0;
                     _m1 = _ovfl;
                     _sign = _res = 0;
-                    _cl += 2;
+                    _clock += 2;
                     break;
 // CLR
                 case 0x0F:
@@ -2671,66 +2686,66 @@ namespace nMO5
 
 // BIT
                 case 0x85:
-                    Bit(_a, Immed8(), 2);
+                    Bit(A, Immed8(), 2);
                     break;
                 case 0x95:
-                    Bit(_a, Direc(), 4);
+                    Bit(A, Direc(), 4);
                     break;
                 case 0xB5:
-                    Bit(_a, Etend(), 5);
+                    Bit(A, Etend(), 5);
                     break;
                 case 0xA5:
-                    Bit(_a, Indexe(), 4);
+                    Bit(A, Indexe(), 4);
                     break;
                 case 0xC5:
-                    Bit(_b, Immed8(), 2);
+                    Bit(B, Immed8(), 2);
                     break;
                 case 0xD5:
-                    Bit(_b, Direc(), 4);
+                    Bit(B, Direc(), 4);
                     break;
                 case 0xF5:
-                    Bit(_b, Etend(), 5);
+                    Bit(B, Etend(), 5);
                     break;
                 case 0xE5:
-                    Bit(_b, Indexe(), 4);
+                    Bit(B, Indexe(), 4);
                     break;
 
 // CMP
                 case 0x81:
-                    Cmp8(_a, Immed8(), 2);
+                    Cmp8(A, Immed8(), 2);
                     break;
                 case 0x91:
-                    Cmp8(_a, Direc(), 4);
+                    Cmp8(A, Direc(), 4);
                     break;
                 case 0xB1:
-                    Cmp8(_a, Etend(), 5);
+                    Cmp8(A, Etend(), 5);
                     break;
                 case 0xA1:
-                    Cmp8(_a, Indexe(), 4);
+                    Cmp8(A, Indexe(), 4);
                     break;
                 case 0xC1:
-                    Cmp8(_b, Immed8(), 2);
+                    Cmp8(B, Immed8(), 2);
                     break;
                 case 0xD1:
-                    Cmp8(_b, Direc(), 4);
+                    Cmp8(B, Direc(), 4);
                     break;
                 case 0xF1:
-                    Cmp8(_b, Etend(), 5);
+                    Cmp8(B, Etend(), 5);
                     break;
                 case 0xE1:
-                    Cmp8(_b, Indexe(), 4);
+                    Cmp8(B, Indexe(), 4);
                     break;
                 case 0x8C:
-                    Cmp16(_x, Immed16(), 5);
+                    Cmp16(X, Immed16(), 5);
                     break;
                 case 0x9C:
-                    Cmp16(_x, Direc(), 7);
+                    Cmp16(X, Direc(), 7);
                     break;
                 case 0xBC:
-                    Cmp16(_x, Etend(), 8);
+                    Cmp16(X, Etend(), 8);
                     break;
                 case 0xAC:
-                    Cmp16(_x, Indexe(), 7);
+                    Cmp16(X, Indexe(), 7);
                     break;
 
 // TST
@@ -3216,82 +3231,78 @@ namespace nMO5
                     {
 // LDS
                         case 0xCE:
-                            _s = Ld16(Immed16(), 3);
+                            S = Ld16(Immed16(), 3);
                             break;
                         case 0xDE:
-                            _s = Ld16(Direc(), 5);
+                            S = Ld16(Direc(), 5);
                             break;
                         case 0xFE:
-                            _s = Ld16(Etend(), 6);
+                            S = Ld16(Etend(), 6);
                             break;
                         case 0xEE:
-                            _s = Ld16(Indexe(), 5);
+                            S = Ld16(Indexe(), 5);
                             break;
 
 // LDY
                         case 0x8E:
-                            _y = Ld16(Immed16(), 3);
+                            Y = Ld16(Immed16(), 3);
                             break;
                         case 0x9E:
-                            _y = Ld16(Direc(), 5);
+                            Y = Ld16(Direc(), 5);
                             break;
                         case 0xBE:
-                            _y = Ld16(Etend(), 6);
+                            Y = Ld16(Etend(), 6);
                             break;
                         case 0xAE:
-                            _y = Ld16(Indexe(), 5);
+                            Y = Ld16(Indexe(), 5);
                             break;
 
 // STS
                         case 0xDF:
-                            St16(_s, Direc(), 5);
+                            St16(S, Direc(), 5);
                             break;
                         case 0xFF:
-                            St16(_s, Etend(), 6);
+                            St16(S, Etend(), 6);
                             break;
                         case 0xEF:
-                            St16(_s, Indexe(), 5);
+                            St16(S, Indexe(), 5);
                             break;
 
 // STY
                         case 0x9F:
-                            St16(_y, Direc(), 5);
+                            St16(Y, Direc(), 5);
                             break;
                         case 0xBF:
-                            St16(_y, Etend(), 6);
+                            St16(Y, Etend(), 6);
                             break;
                         case 0xAF:
-                            St16(_y, Indexe(), 5);
+                            St16(Y, Indexe(), 5);
                             break;
 
 // CMP
                         case 0x83:
-                            Calcd();
-                            Cmp16(_d, Immed16(), 5);
+                            Cmp16(D, Immed16(), 5);
                             break;
                         case 0x93:
-                            Calcd();
-                            Cmp16(_d, Direc(), 7);
+                            Cmp16(D, Direc(), 7);
                             break;
                         case 0xB3:
-                            Calcd();
-                            Cmp16(_d, Etend(), 8);
+                            Cmp16(D, Etend(), 8);
                             break;
                         case 0xA3:
-                            Calcd();
-                            Cmp16(_d, Indexe(), 7);
+                            Cmp16(D, Indexe(), 7);
                             break;
                         case 0x8C:
-                            Cmp16(_y, Immed16(), 5);
+                            Cmp16(Y, Immed16(), 5);
                             break;
                         case 0x9C:
-                            Cmp16(_y, Direc(), 7);
+                            Cmp16(Y, Direc(), 7);
                             break;
                         case 0xBC:
-                            Cmp16(_y, Etend(), 8);
+                            Cmp16(Y, Etend(), 8);
                             break;
                         case 0xAC:
-                            Cmp16(_y, Indexe(), 7);
+                            Cmp16(Y, Indexe(), 7);
                             break;
 
 // Bxx
@@ -3355,28 +3366,28 @@ namespace nMO5
                     {
                         // CMP
                         case 0x8C:
-                            Cmp16(_s, Immed16(), 5);
+                            Cmp16(S, Immed16(), 5);
                             break;
                         case 0x9C:
-                            Cmp16(_s, Direc(), 7);
+                            Cmp16(S, Direc(), 7);
                             break;
                         case 0xBC:
-                            Cmp16(_s, Etend(), 8);
+                            Cmp16(S, Etend(), 8);
                             break;
                         case 0xAC:
-                            Cmp16(_s, Indexe(), 7);
+                            Cmp16(S, Indexe(), 7);
                             break;
                         case 0x83:
-                            Cmp16(_u, Immed16(), 5);
+                            Cmp16(U, Immed16(), 5);
                             break;
                         case 0x93:
-                            Cmp16(_u, Direc(), 7);
+                            Cmp16(U, Direc(), 7);
                             break;
                         case 0xB3:
-                            Cmp16(_u, Etend(), 8);
+                            Cmp16(U, Etend(), 8);
                             break;
                         case 0xA3:
-                            Cmp16(_u, Indexe(), 7);
+                            Cmp16(U, Indexe(), 7);
                             break;
 
                         default:
@@ -3397,13 +3408,13 @@ namespace nMO5
         // DISASSEMBLE/DEBUG PART
         public string PrintState()
         {
-            _cc = Getcc();
+            Cc = Getcc();
             var s = new StringBuilder();
-            s.AppendFormat(" A=  {0:X2}  B=  {1:X2}", _a, _b).AppendLine();
-			s.AppendFormat(" X={0:X4}  Y={1:X4}", _x, _y).AppendLine();
-			s.AppendFormat("PC={0:X4} DP={1:X4}", Pc, _dp).AppendLine();
-            s.AppendFormat(" U={0:X4}  S={1:X4}", _u, _s).AppendLine();
-            s.AppendFormat(" CC=  {0:X2}", _cc);
+            s.AppendFormat(" A=  {0:X2}  B=  {1:X2}", A, B).AppendLine();
+			s.AppendFormat(" X={0:X4}  Y={1:X4}", X, Y).AppendLine();
+			s.AppendFormat("PC={0:X4} DP={1:X4}", Pc, Dp).AppendLine();
+            s.AppendFormat(" U={0:X4}  S={1:X4}", U, S).AppendLine();
+            s.AppendFormat(" CC=  {0:X2}", Cc);
             return s.ToString();
         }
     } // of class M6809

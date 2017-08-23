@@ -193,7 +193,7 @@ namespace nMO5
 			var dataOut = new byte[1];
 
 			if (pc == 0xF169)
-				Readbit();
+				ReadBit();
 			/* Write K7 byte */
 			/* Merci 
      Olivier Tardieu pour le dsassemblage de la routine en ROM */
@@ -372,7 +372,19 @@ namespace nMO5
 			_k7Char = 0;
 		}
 
-		private void Readbit()
+        internal void ReadByte(M6809 machine)
+        {
+            if (!IsInFileOpened) return;
+
+            int data = 0;
+            _k7Char = _k7Fis.ReadByte();
+
+            machine.A = _k7Char;
+            Set(0x2045, data); 
+            _k7Bit = 0;
+        }
+
+        public void ReadBit()
 		{
 			if (!IsInFileOpened) return;
 
