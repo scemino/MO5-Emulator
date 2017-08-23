@@ -132,18 +132,16 @@ namespace MO5Emulator
         {
             if (!KeyMappings.Keys.TryGetValue(c, out VirtualKey key))
                 return;
-            
-            if (key.ShiftKey.HasValue)
+
+            if (key.ShiftKey.HasValue && key.ShiftKey.Value)
             {
-                if (key.ShiftKey.Value)
-                {
-                    _machine.Keyboard.KeyPressed(Mo5Key.Shift);
-                }
-                else
-                {
-                    _machine.Keyboard.KeyReleased(Mo5Key.Shift);
-                }
+                _machine.Keyboard.KeyPressed(Mo5Key.Shift);
             }
+            else
+            {
+                _machine.Keyboard.KeyReleased(Mo5Key.Shift);
+            }
+
             action(key.Key);
         }
 
