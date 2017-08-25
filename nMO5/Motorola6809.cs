@@ -3389,6 +3389,11 @@ namespace nMO5
                         case 0xA3:
                             Cmp16(U, Indexe(), 7);
                             break;
+						// thanks to D.Coulom for the next instructions
+						// used by his emulator dcmoto
+						case 0xF1:
+							_mem.ReadByte(this);
+							break;
 
                         default:
                             System.Console.Error.WriteLine("opcode 11 {0:X2} not implemented",opcode0X11);
