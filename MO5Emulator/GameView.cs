@@ -56,8 +56,13 @@ namespace MO5Emulator
 
         public void OpenK7(string k7)
         {
-            _machine.SetK7File(k7);
+            _machine.OpenK7(k7);
         }
+
+        public void OpenMemo(string path)
+		{
+            _machine.OpenMemo(path);
+		}
 
         public void HardReset()
         {

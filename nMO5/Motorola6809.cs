@@ -91,13 +91,12 @@ namespace nMO5
             Reset();
         }
 
-
         public void Reset()
         {
-            Pc = (_mem.Read(0xFFFE) << 8) | _mem.Read(0xFFFF);
+            Pc = _mem.Read16(0xFFFE);
             Dp = 0x00;
             S = 0x8000;
-            Cc = 0x00;
+            Cc = 0x10;
         }
 
         // basic 6809 addressing modes

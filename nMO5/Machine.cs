@@ -23,13 +23,18 @@
         public void Step()
         {
             FullSpeed();
-            //Synchronize();
         }
 
-        public void SetK7File(string k7)
+        public void OpenK7(string k7)
         {
             _mem.SetK7File(k7);
         }
+
+		public void OpenMemo(string path)
+		{
+			_mem.OpenMemo(path);
+            _micro.Reset();
+		}
 
         // soft reset method ("reinit prog" button on original MO5) 
         public void ResetSoft()
@@ -49,8 +54,6 @@
         // the emulator main loop
         private void FullSpeed()
         {
-            //screen.repaint(); // Mise a jour de l'affichage
-
             // Mise a jour du crayon optique a partir des donnée de la souris souris
             if (_screen != null)
             {
@@ -60,7 +63,7 @@
             }
 
             _mem.Set(0xA7E7, 0x00);
-            /* 3.9 ms haut �cran (+0.3 irq)*/
+            // 3.9 ms haut écran (+0.3 irq)
             if (_irq)
             {
                 _irq = false;
@@ -71,7 +74,7 @@
                 _micro.FetchUntil(4100);
             }
 
-            /* 13ms fenetre */
+            // 13ms fenetre
             _mem.Set(0xA7E7, 0x80);
             _micro.FetchUntil(13100);
 
@@ -81,38 +84,16 @@
             if ((_mem.Crb & 0x01) == 0x01)
             {
                 _irq = true;
-                /* Positionne le bit 7 de CRB */
                 _mem.Crb |= 0x80;
                 _mem.Set(0xA7C3, _mem.Crb);
                 var cc = _micro.ReadCc();
                 if ((cc & 0x10) == 0)
                     _micro.Irq();
-                /* 300 cycles sous interrupt */
+                // 300 cycles sous interrupt
                 _micro.FetchUntil(300);
                 _mem.Crb &= 0x7F;
                 _mem.Set(0xA7C3, _mem.Crb);
             }
         }
-
-/*      private void Synchronize()
-        {
-            var realTimeMillis = Environment.TickCount - _lastTime;
-
-            var sleepMillis = 20 - realTimeMillis - 1;
-            if (sleepMillis < 0)
-            {
-                _lastTime = Environment.TickCount;
-                return;
-            }
-            try
-            {
-                Thread.Sleep(sleepMillis);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine(e);
-            }
-            _lastTime = Environment.TickCount;
-        }*/
-    } // of class
+    }
 }

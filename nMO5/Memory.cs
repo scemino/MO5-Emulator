@@ -4,6 +4,14 @@ using System.IO;
 
 namespace nMO5
 {
+    [Flags]
+    enum CartridgeType
+    {
+        Simple = 0,
+        SwitchBank = 1,
+        Os9 = 2,
+    }
+
 	public class Memory
 	{
 		private bool[] _dirty;
@@ -28,17 +36,24 @@ namespace nMO5
 		// 14 15 16 17  ROM     4
 		private int[][] _mem;
 
-		/* Registres du 6821 */
+		// Registres du 6821
 		public int Ora;
 		public int Orb;
 		public int Ddra;
 		public int Ddrb;
 		public int Cra;
 		public int Crb;
+
+		// Cartridge
+		private CartridgeType _cartype;
+        private long _carsize;
+        private int _carflags;
+		private byte[] _car;
+
 		public int SoundMem { get; private set; }
 
-		// Lightpen parameters  
-		public bool LightPenClick { get; set; }
+        // Lightpen parameters  
+        public bool LightPenClick { get; set; }
 		public int LightPenX { get; set; }
 		public int LightPenY { get; set; }
 
@@ -64,8 +79,16 @@ namespace nMO5
 		// read with io
 		public int Read(int address)
 		{
+            if (address == 0xA7CB)
+            {
+                return (_carflags & 0x3F) | ((_carflags & 0x80) >> 1) | ((_carflags & 0x40) << 1);
+            }
 			var page = (address & 0xF000) >> 12;
-			return _mem[_mapper[page]][address & 0xFFF];
+            if (page == 0x0B)
+            {
+                SwitchMemo5Bank(address); 
+            }
+            return _mem[_mapper[page]][address & 0xFFF] & 0xff;
 		}
 
 		public int Read16(int address)
@@ -103,19 +126,36 @@ namespace nMO5
 			return adresses;
 		}
 
-		// write with io
-		public void Write(int address, int value)
-		{
-			var page = (address & 0xF000) >> 12;
+        // write with io
+        public void Write(int address, int value)
+        {
+            var page = (address & 0xF000) >> 12;
 
-			if (_mapper[page] >= 14 && _mapper[page] <= 17)
-				return; // Protection en écriture de la ROM
+            if (_mapper[page] >= 14 && _mapper[page] <= 17)
+                return; // Protection en écriture de la ROM
 
-			if (address < 0x1F40) _dirty[address / 40] = true;
-			if (page == 0x0A) Hardware(address, value);
-			else
-				_mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-		}
+            if (address < 0x1F40)
+            {
+                _dirty[address / 40] = true;
+            }
+            if (page == 0x0A)
+            {
+                Hardware(address, value);
+            }
+            else if (page == 0x0B || page == 0x0C || page == 0x0D 
+                     || page == 0x0E)
+            {
+                if (((_carflags & 8) != 0) && (_cartype == 0))
+                {
+                    _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+                    return;
+                }
+            }
+            else
+            {
+                _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+            }
+        }
 
 		public void Set(int address, int value)
 		{
@@ -183,6 +223,20 @@ namespace nMO5
 			_k7Char = 0;
 		}
 
+        public void OpenMemo(string path)
+        {
+            using (var memo = File.OpenRead(path))
+            {
+                _carsize = Math.Min(memo.Length, 0x10000);
+                _car = new byte[_carsize];
+                memo.Read(_car, 0, (int)_carsize);
+            }
+            _cartype = _carsize > 0x4000 ? CartridgeType.SwitchBank : CartridgeType.Simple; //cartouche > 16 Ko
+            _carflags = 4; //cartridge enabled, write disabled, bank 0; 
+
+            Reset();
+        }
+
 		public void Rewind()
 		{
 			_k7Fis?.Seek(0, SeekOrigin.Begin);
@@ -194,9 +248,9 @@ namespace nMO5
 
 			if (pc == 0xF169)
 				ReadBit();
-			/* Write K7 byte */
-			/* Merci 
-     Olivier Tardieu pour le dsassemblage de la routine en ROM */
+			// Write K7 byte
+			// Merci 
+            // Olivier Tardieu pour le dsassemblage de la routine en ROM
 			if (pc == 0xF1B0)
 			{
 				CreateK7File(); // To do if necessary
@@ -223,7 +277,7 @@ namespace nMO5
 				Write(s, c);
 				//Console.WriteLine("motor ");
 			}
-			if (pc == 0xf549)
+			if (pc == 0xF549)
 			{
 				Write(s + 6, LightPenX >> 8);
 				Write(s + 7, LightPenX & 255);
@@ -232,22 +286,41 @@ namespace nMO5
 			}
 		}
 
-		// write with io without Protection
-		private void WriteP(int address, int value)
+		private void SwitchMemo5Bank(int address)
 		{
-			var page = (address & 0xF000) >> 12;
-			if (address < 0x1F40) _dirty[address / 40] = true;
-			if (page == 0x0A) Hardware(address, value);
-			else
-				_mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+            if (_cartype != CartridgeType.SwitchBank) return;
+			if ((address & 0xFFFC) != 0xBFFC) return;
+            _carflags = (_carflags & 0xFC) | (address & 3);
+            LoadRom();
 		}
+
+        // write with io without Protection
+        private void WriteP(int address, int value)
+        {
+            var page = (address & 0xF000) >> 12;
+            if (address < 0x1F40)
+            {
+                _dirty[address / 40] = true;
+            }
+            if (page == 0x0A)
+            {
+                Hardware(address, value);
+                return;
+            }
+            if (page == 0x0B || page == 0x0C || page == 0x0D || page == 0x0E)
+            {
+                if (((_carflags & 8) != 0) && (_cartype == 0))
+                {
+                    _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+                    return;
+                }
+            }
+            _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+        }
 
 		private void Reset()
 		{
-			for (var i = 0; i < 0xFFFF; i++)
-			{
-				Set(i, 0x00);
-			}
+			_carflags &= 0xEC;
 			LoadRom();
 			Cra = 0x00;
 			Crb = 0x00;
@@ -263,31 +336,54 @@ namespace nMO5
 		}
 
 		private void LoadRom()
-		{
-			const int startingAddress = 0xC000;
-			try
-			{
-				using (var fis = File.OpenRead("./bios/mo5.rom"))
-				{
-					for (var i = startingAddress; i < 0x10000; i++)
-						WriteP(i, fis.ReadByte());
-				}
-			}
-			catch (Exception e)
-			{
-				Console.Error.WriteLine("Error : mo5.rom file is missing {0}", e);
-			}
+        {
+            if ((_carflags & 4) != 0)
+            {
+                LoadMemo();
+                return;
+            }
+
+            LoadMo5Rom();
 		}
 
-		private void Hardware(int adr, int op)
+        private void LoadMemo()
+        {
+            var offset = ((_carflags & 0x03) << 14);
+            var maxSize = Math.Min(_car.Length - offset, 0x4000); // max 16 Kb
+            for (var i = 0; i < maxSize; i++)
+            {
+                Set(0xB000 + i, _car[i + offset]);
+            }
+        }
+
+        private void LoadMo5Rom()
+        {
+            const int startingAddress = 0xC000;
+            try
+            {
+                using (var fis = File.OpenRead("./bios/mo5.rom"))
+                {
+                    for (var i = startingAddress; i < 0x10000; i++)
+                    {
+                        WriteP(i, fis.ReadByte());
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error : mo5.rom file is missing {0}", e);
+            }
+        }
+
+        private void Hardware(int adr, int op)
 		{
-			/* 6821 système */
-			/* acces à ORA ou DDRA */
+			// 6821 système
+			// acces à ORA ou DDRA
 			switch (adr)
 			{
 				case 0xA7C0:
 					if ((Cra & 0x04) == 0x04)
-					/* Accès à ORA */
+					// Accès à ORA
 					{
 						if ((op & 0x01) == 0x01)
 						{
@@ -299,7 +395,7 @@ namespace nMO5
 							_mapper[0] = 2;
 							_mapper[1] = 3;
 						}
-						/* Mise à jour de ORA selon le masque DDRA */
+						// Mise à jour de ORA selon le masque DDRA
 						op |= 0x80 + 0x20; // gestion de ,l'inter optique 
 						Ora = (Ora & (Ddra ^ 0xFF)) | (op & Ddra);
 						if (LightPenClick)
@@ -315,12 +411,11 @@ namespace nMO5
 					break;
 				case 0xA7C1:
 					if ((Crb & 0x04) == 0x04)
-					/* Accès à ORB */
+					// Accès à ORB
 					{
 						Orb = (Orb & (Ddrb ^ 0xFF)) | (op & Ddrb);
 
-						/* GESTION HARD DU CLAVIER */
-
+						// GESTION HARD DU CLAVIER
 						if (_key[Orb & 0x7E])
 							Orb = Orb & 0x7F;
 						else
@@ -342,6 +437,10 @@ namespace nMO5
 				case 0xA7C3:
 					Crb = (Crb & 0xD0) | (op & 0x3F);
 					_mem[0xA + 2][0x7C3] = Crb;
+					break;
+				case 0xA7CB:
+                    _carflags = op;
+                    LoadRom();
 					break;
 			}
 		}
@@ -388,7 +487,7 @@ namespace nMO5
 		{
 			if (!IsInFileOpened) return;
 
-			/* doit_on lire un caractere ? */
+			// doit_on lire un caractere ?
 			if (_k7Bit == 0x00)
 			{
 				try
@@ -415,7 +514,7 @@ namespace nMO5
 				// A=0xFF;
 				Set(0xF16A, 0xFF);
 			}
-			/* positionne l'octet dans la page 0 du moniteur */
+			// positionne l'octet dans la page 0 du moniteur
 			Set(0x2045, octet & 0xFF);
 			Led = octet & 0xff;
 			ShowLed = 10;
@@ -439,8 +538,8 @@ namespace nMO5
 
             */
 			// Crayon optique
-			Set(0xf548, 0x02); // PER instruction émulateur
-			Set(0xf549, 0x39); // RTS
+			Set(0xF548, 0x02); // PER instruction émulateur
+			Set(0xF549, 0x39); // RTS
 
 
 			Set(0xF1AF, 0x02);

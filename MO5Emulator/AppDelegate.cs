@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Linq;
 using AppKit;
 using Foundation;
@@ -38,15 +40,28 @@ namespace MO5Emulator
 			dlg.CanChooseDirectories = false;
 
 			if (dlg.RunModal() == 1)
-			{
-                Game.OpenK7(dlg.Url.Path);
+            {
+                OpenFile(dlg.Url.Path);
                 NSDocumentController.SharedDocumentController.NoteNewRecentDocumentURL(dlg.Url);
+            }
+        }
+
+        private void OpenFile(string path)
+        {
+            var ext = Path.GetExtension(path);
+            if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".k7"))
+            {
+                Game.OpenK7(path);
+            }
+            else if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".rom"))
+            {
+                Game.OpenMemo(path);
             }
         }
 
         public override bool OpenFile(NSApplication sender, string filename)
         {
-            Game.OpenK7(filename);
+            OpenFile(filename);
             return true;
         }
 
