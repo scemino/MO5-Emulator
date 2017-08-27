@@ -1,4 +1,6 @@
-﻿﻿namespace nMO5
+﻿using System;
+
+namespace nMO5
 {
     public class Machine
     {
@@ -34,6 +36,11 @@
 		{
 			_mem.OpenMemo(path);
             _micro.Reset();
+		}
+
+		public void OpenDisk(string path)
+		{
+            _mem.OpenDisk(path);
 		}
 
         // soft reset method ("reinit prog" button on original MO5) 

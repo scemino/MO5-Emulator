@@ -57,6 +57,10 @@ namespace MO5Emulator
             {
                 Game.OpenMemo(path);
             }
+			else if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".fd"))
+			{
+				Game.OpenDisk(path);
+			}
         }
 
         public override bool OpenFile(NSApplication sender, string filename)

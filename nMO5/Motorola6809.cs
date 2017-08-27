@@ -2434,9 +2434,10 @@ namespace nMO5
             return _clock;
         }
 
-        public void Fetch()
+        private void Fetch()
         {
-            int opcode = _mem.Read(Pc++);
+            int opcode = _mem.Read(Pc);
+			Pc++;
 
             // 	Sound emulation process
             SoundBuffer[_soundAddr] = (byte) _mem.SoundMem;
@@ -2450,11 +2451,6 @@ namespace nMO5
                 case 0x01:
                     Pc++;
                     _clock += 2;
-                    break;
-
-                // PER (instruction d'emulation de périphérique)
-                case 0x02:
-                    _mem.Periph(Pc, S, A);
                     break;
 
                 // LDA
@@ -3360,7 +3356,6 @@ namespace nMO5
                 case 0x11:
 
                     int opcode0X11 = _mem.Read(Pc++);
-
                     switch (opcode0X11)
                     {
                         // CMP
@@ -3390,12 +3385,37 @@ namespace nMO5
                             break;
 						// thanks to D.Coulom for the next instructions
 						// used by his emulator dcmoto
-						case 0xF1:
-							_mem.ReadByte(this);
+						case 0xEC:
+                            // lecture bit cassette
+                            _mem.ReadBit(this);
+                            _clock += 64;
 							break;
-
-                        default:
-                            System.Console.Error.WriteLine("opcode 11 {0:X2} not implemented",opcode0X11);
+						case 0xF1: // lecture octet cassette (pour 6809)
+						case 0xED: // lecture octet cassette (pour compatibilite 6309)
+							_mem.ReadByte(this);
+                            _clock += 64;
+							break;
+						// TODO
+						// 0xF2: ecriture octet cassette(pour 6809)
+						// 0xEE: ecriture octet cassette(pour compatibilite 6309)
+						case 0xF3: // initialisation controleur disquette
+                            _clock += 64;
+                            break;
+                        // 0xF4: formatage disquette
+						case 0xF5:
+                            _mem.ReadSector();
+                            _clock += 64;
+							break;
+						// TODO:
+						// 0xF8: lecture position souris
+						// 0xF9: lecture des boutons de la souris
+						// 0xFA: envoi d'un octet a l'imprimante
+						// 0xFC: lecture du clavier TO8
+						// 0xFD: ecriture vers clavier TO8
+						// 0xFE: emission commande nanoreseau
+						// 0xFF: lecture coordonnees crayon optique
+						default:
+                            System.Console.Error.WriteLine("opcode 11 {0:X2} not implemented", opcode0X11);
                             System.Console.Error.WriteLine(PrintState());
                             break;
                     } // of case opcode 0x11 
@@ -3407,7 +3427,6 @@ namespace nMO5
                     break;
             } // of case  opcode
         } // of method fetch()
-
 
         // DISASSEMBLE/DEBUG PART
         public string PrintState()

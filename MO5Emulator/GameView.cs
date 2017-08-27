@@ -54,6 +54,11 @@ namespace MO5Emulator
             base.OnLoad(e);
         }
 
+        internal void OpenDisk(string path)
+        {
+            _machine.OpenDisk(path);
+        }
+
         public void OpenK7(string k7)
         {
             _machine.OpenK7(k7);
