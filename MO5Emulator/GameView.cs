@@ -157,19 +157,20 @@ namespace MO5Emulator
 
         public override void MouseDown(NSEvent theEvent)
         {
-            _screen.MouseClick = true;
+            _machine.Memory.LightPenClick = true;
         }
 
         public override void MouseUp(NSEvent theEvent)
         {
-            _screen.MouseClick = false;
+            _machine.Memory.LightPenClick = false;
         }
 
         public override void MouseMoved(NSEvent theEvent)
         {
-            var x = Screen.Width * theEvent.LocationInWindow.X / Size.Width;
-            var y = Screen.Height - (Screen.Height * theEvent.LocationInWindow.Y / Size.Height);
-            _screen.SetMousePosition((int)x, (int)y);
+            var x = Screen.Width * theEvent.LocationInWindow.X / Bounds.Size.Width;
+            var y = Screen.Height - (Screen.Height * theEvent.LocationInWindow.Y / Bounds.Size.Height);
+            _machine.Memory.LightPenX = (int)x - 8;
+            _machine.Memory.LightPenY = (int)y - 8;
         }
 
         protected override void OnRenderFrame(OpenTK.FrameEventArgs e)

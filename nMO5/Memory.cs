@@ -28,6 +28,9 @@ namespace nMO5
         private bool[] _key;
         private int[] _mapper;
 
+        internal int _videolinecycle;
+		internal int _videolinenumber;
+
         // 0 1          POINT   2
         // 2 3          COLOR   2
         // 4 5 6 7      RAM1    4
@@ -38,11 +41,6 @@ namespace nMO5
         private int[][] _mem;
 
         // Registres du 6821
-        public int Ora;
-        public int Orb;
-        public int Ddra;
-        public int Ddrb;
-        public int Cra;
         public int Crb;
 
         // Cartridge
@@ -63,14 +61,7 @@ namespace nMO5
         public int ShowLed { get; set; }
         public int Led { get; private set; }
 
-		public int BorderColor
-		{
-			get
-			{
-				var value = Read(0xA7C0);
-				return (value >> 1) & 0x0F;
-			}
-		}
+        public int BorderColor => (Read(0xA7C0) >> 1) & 0x0F;
 
         public Memory()
         {
@@ -98,24 +89,55 @@ namespace nMO5
         // read with io
         public int Read(int address)
         {
-            if (address == 0xA7CB)
-            {
-                return (_carflags & 0x3F) | ((_carflags & 0x80) >> 1) | ((_carflags & 0x40) << 1);
-            }
-            if (address >= 0xA000 && address < 0xA7C0)
+			if (address >= 0xA000 && address < 0xA7C0)
             {
                 return _floppyRom[address & 0x7FF];
             }
             var page = (address & 0xF000) >> 12;
-            if (page == 0x0B)
+			var value = _mem[_mapper[page]][address & 0xFFF] & 0xFF;
+			switch (page)
             {
-                SwitchMemo5Bank(address);
-            }
-            var value = _mem[_mapper[page]][address & 0xFFF] & 0xFF;
-            if (address == 0xA7C0)
-            {
-                // indicates that the tape drive is present
-                return value | 0x80;
+                case 0x0A:
+                    switch (address)
+                    {
+                        case 0xA7C0:
+                            const int tapeDrivePresent = 0x80;
+                            value |= tapeDrivePresent | (LightPenClick ? 0x20 : 0);
+                            break;
+                        case 0xA7C1:
+                            if (_key[value & 0x7E])
+                                value &= 0x7F;
+                            else
+                                value |= 0x80;
+                            break;
+                        case 0xA7C3:
+                            value |= ~Initn();
+                            break;
+                        case 0xA7CB:
+                            return (_carflags & 0x3F) | ((_carflags & 0x80) >> 1) | ((_carflags & 0x40) << 1);
+                        case 0xA7CE:
+                            return 4;
+                        case 0xA7D8:
+                            //octet etat disquette
+                            return ~Initn();
+                        case 0xA7E1:
+                            //zero provoque erreur 53 sur imprimante
+                            return 0xFF;
+                        case 0xA7E6:
+                            return Iniln() << 1;
+                        case 0xA7E7:
+                            return Initn();
+                        default:
+                            if (address < 0xA800)
+                            {
+                                return _mem[_mapper[page]][address & 0x3F] & 0xFF;
+                            }
+                            break;
+                    }
+                    break;
+				case 0x0B:
+					SwitchMemo5Bank(address);
+					break;
             }
             return value;
         }
@@ -158,33 +180,35 @@ namespace nMO5
         // write with io
         public void Write(int address, int value)
         {
-            var page = (address & 0xF000) >> 12;
-
-            if (_mapper[page] >= 14 && _mapper[page] <= 17)
-                return; // Protection en écriture de la ROM
-
-            if (address < 0x1F40)
-            {
-                _dirty[address / 40] = true;
-            }
-            if (page == 0x0A)
-            {
-                Hardware(address, value);
-            }
-            else if (page == 0x0B || page == 0x0C || page == 0x0D
-                     || page == 0x0E)
-            {
-                if (((_carflags & 8) != 0) && (_cartype == 0))
-                {
-                    _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-                    return;
-                }
-            }
-            else
-            {
-                _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-            }
+            WriteCore(address, value, true);
         }
+
+		// write with io without Protection
+		private void WriteCore(int address, int value, bool isProtected = false)
+		{
+			var page = (address & 0xF000) >> 12;
+			if (isProtected && _mapper[page] >= 14 && _mapper[page] <= 17)
+				return; // Protection en écriture de la ROM
+
+			if (address < 0x1F40)
+			{
+				_dirty[address / 40] = true;
+			}
+			if (page == 0x0A)
+			{
+				Hardware(address, value);
+				return;
+			}
+			if (page == 0x0B || page == 0x0C || page == 0x0D || page == 0x0E)
+			{
+				if (((_carflags & 8) != 0) && (_cartype == 0))
+				{
+					_mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+					return;
+				}
+			}
+			_mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+		}
 
         public void Set(int address, int value)
         {
@@ -195,7 +219,7 @@ namespace nMO5
         public void Set16(int address, int value)
         {
             Set(address, value >> 8);
-            Set(address + 1, value & 0xFF);
+            Set(address + 1, value);
         }
 
         public int Point(int address)
@@ -271,6 +295,23 @@ namespace nMO5
             _k7Fis?.Seek(0, SeekOrigin.Begin);
         }
 
+		// Signaux de synchronisation ligne et trame
+		private int Iniln()
+		{
+			//11 microsecondes - 41 microsecondes - 12 microsecondes 
+			if (_videolinecycle < 23) return 0; else return 0x20;
+		}
+
+		private int Initn()
+		{
+			//debut à 12 microsecondes ligne 56, fin à 51 microsecondes ligne 255
+			if (_videolinenumber < 56) return 0;
+			if (_videolinenumber > 255) return 0;
+			if (_videolinenumber == 56) if (_videolinecycle < 24) return 0;
+			if (_videolinenumber == 255) if (_videolinecycle > 62) return 0;
+			return 0x80;
+		}
+
         private void SwitchMemo5Bank(int address)
         {
             if (_cartype != CartridgeType.SwitchBank) return;
@@ -279,43 +320,16 @@ namespace nMO5
             LoadRom();
         }
 
-        // write with io without Protection
-        private void WriteP(int address, int value)
-        {
-            var page = (address & 0xF000) >> 12;
-            if (address < 0x1F40)
-            {
-                _dirty[address / 40] = true;
-            }
-            if (page == 0x0A)
-            {
-                Hardware(address, value);
-                return;
-            }
-            if (page == 0x0B || page == 0x0C || page == 0x0D || page == 0x0E)
-            {
-                if (((_carflags & 8) != 0) && (_cartype == 0))
-                {
-                    _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-                    return;
-                }
-            }
-            _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-        }
-
         private void Reset()
         {
             _carflags &= 0xEC;
             LoadRom();
-            Cra = 0x00;
             Crb = 0x00;
-            Ddra = 0x5F;
-            Ddrb = 0x7F;
 
-            _mem[0xA + 2][0x7CC] = 0xFF;
-            _mem[0xA + 2][0x7CD] = 0xFF;
-            _mem[0xA + 2][0x7CE] = 0xFF;
-            _mem[0xA + 2][0x7CF] = 0xFF;
+            //_mem[0xA + 2][0x7CC] = 0xFF;
+            //_mem[0xA + 2][0x7CD] = 0xFF;
+            //_mem[0xA + 2][0x7CE] = 0xFF;
+            //_mem[0xA + 2][0x7CF] = 0xFF;
         }
 
         private void LoadRom()
@@ -348,7 +362,7 @@ namespace nMO5
                 {
                     for (var i = startingAddress; i < 0x10000; i++)
                     {
-                        WriteP(i, fis.ReadByte());
+                        WriteCore(i, fis.ReadByte());
                     }
                 }
             }
@@ -365,57 +379,24 @@ namespace nMO5
             switch (adr)
             {
                 case 0xA7C0:
-                    if ((Cra & 0x04) == 0x04)
-                    // Accès à ORA
+                    if ((op & 0x01) == 0x01)
                     {
-                        if ((op & 0x01) == 0x01)
-                        {
-                            _mapper[0] = 0;
-                            _mapper[1] = 1;
-                        }
-                        else
-                        {
-                            _mapper[0] = 2;
-                            _mapper[1] = 3;
-                        }
-                        // Mise à jour de ORA selon le masque DDRA
-                        op |= 0x80 + 0x20; // gestion de ,l'inter optique 
-                        Ora = (Ora & (Ddra ^ 0xFF)) | (op & Ddra);
-                        if (LightPenClick)
-                            _mem[0xA + 2][0x7C0] = Ora | 0x20;
-                        else
-                            _mem[0xA + 2][0x7C0] = Ora & ~0x20;
+                        _mapper[0] = 0;
+                        _mapper[1] = 1;
                     }
                     else
                     {
-                        Ddra = op;
-                        _mem[0xA + 2][0x7C0] = op;
+                        _mapper[0] = 2;
+                        _mapper[1] = 3;
                     }
+                    _mem[0xA + 2][0x7C0] = op & 0x5F;
                     break;
                 case 0xA7C1:
-                    if ((Crb & 0x04) == 0x04)
-                    // Accès à ORB
-                    {
-                        Orb = (Orb & (Ddrb ^ 0xFF)) | (op & Ddrb);
-
-                        // GESTION HARD DU CLAVIER
-                        if (_key[Orb & 0x7E])
-                            Orb = Orb & 0x7F;
-                        else
-                            Orb = Orb | 0x80;
-
-                        _mem[0xA + 2][0x7C1] = Orb;
-                        SoundMem = (Orb & 1) << 5;
-                    }
-                    else
-                    {
-                        Ddrb = op;
-                        _mem[0xA + 2][0x7C1] = op;
-                    }
+                    SoundMem = (op & 1) << 5;
+                    _mem[0xA + 2][0x7C1] = op & 0x7F;
                     break;
                 case 0xA7C2:
-                    Cra = (Cra & 0xD0) | (op & 0x3F);
-                    _mem[0xA + 2][0x7C2] = Cra;
+                    _mem[0xA + 2][0x7C2] = op & 0x3F;
                     break;
                 case 0xA7C3:
                     Crb = (Crb & 0xD0) | (op & 0x3F);
@@ -473,13 +454,15 @@ namespace nMO5
                 //TODO: Diskerror(71); 
                 return;
             }
-            var u = Read(0x2049);
-            if (u > 03)
+			// active drive (0, 1 for drive A and 2, 3 for drive B)
+			var u = Read(0x2049);
+            if (u > 3)
             {
                 //Diskerror(53); 
                 return;
             }
-            var p = Read(0x204A);
+			// active track (0..39 on 5.25" drives, 0..79 on 3.5"). 16 bit reg because of QDD use.
+			var p = Read(0x204A);
             if (p != 0)
             {
                 //Diskerror(53); 
@@ -491,7 +474,8 @@ namespace nMO5
                 //Diskerror(53); 
                 return;
             }
-            var s = Read(0x204C);
+			// sector number
+			var s = Read(0x204C);
             if ((s == 0) || (s > 16))
             {
                 //Diskerror(53); 
@@ -507,13 +491,14 @@ namespace nMO5
             var buffer = new byte[256];
             for (var j = 0; j < 256; j++) buffer[j] = 0xe5;
             _fd.Position = (s - 1) << 8;
-            var i = (Read(0x204F) << 8) + Read(0x2050);
-            if (_fd.Read(buffer, 0, 256) == 0)
+			if (_fd.Read(buffer, 0, 256) == 0)
             {
                 //Diskerror(53); 
                 return;
             }
-            for (var j = 0; j < 256; j++)
+			// pointer to disk buffer (128 or 256 bytes)
+			var i = Read16(0x204F);
+			for (var j = 0; j < 256; j++)
             {
                 Write(i++, buffer[j]);
             }
