@@ -63,6 +63,15 @@ namespace nMO5
         public int ShowLed { get; set; }
         public int Led { get; private set; }
 
+		public int BorderColor
+		{
+			get
+			{
+				var value = Read(0xA7C0);
+				return (value >> 1) & 0x0F;
+			}
+		}
+
         public Memory()
         {
             _floppyRom = File.ReadAllBytes("./bios/cd90-640.rom");
@@ -102,7 +111,7 @@ namespace nMO5
             {
                 SwitchMemo5Bank(address);
             }
-            var value = _mem[_mapper[page]][address & 0xFFF] & 0xff;
+            var value = _mem[_mapper[page]][address & 0xFFF] & 0xFF;
             if (address == 0xA7C0)
             {
                 // indicates that the tape drive is present
@@ -201,7 +210,7 @@ namespace nMO5
             return _mem[page + 2][address & 0xFFF];
         }
 
-        public bool IsDirty(int line)
+		public bool IsDirty(int line)
         {
             var ret = _dirty[line];
             _dirty[line] = false;

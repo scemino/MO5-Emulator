@@ -4,10 +4,10 @@ namespace nMO5
 {
     public class Screen
     {
-        public const int Width = 320;
-        public const int Height = 200;
+        public const int Width = 336;  // screen width = 320 + 2 borders of 8 pixels
+		public const int Height = 216; // screen height = 200 + 2 boarders of 8 pixels
 
-        private static readonly Color[] Palette =
+		private static readonly Color[] Palette =
         {
             Color.FromArgb(0x00, 0x00, 0x00),
             Color.FromArgb(0xF0, 0x00, 0x00),
@@ -29,6 +29,14 @@ namespace nMO5
             Color.FromArgb(0x63, 0xF0, 0xF0),
             Color.FromArgb(0xF0, 0x63, 0x00)
         };
+
+		private Color BorderColor
+		{
+			get
+			{
+                return Palette[_mem.BorderColor];
+			}
+		}
 
         private readonly Color[] _pixels;
 
@@ -59,7 +67,7 @@ namespace nMO5
 
         public void Update(Color[] dest)
         {
-            Dopaint();
+            DrawScreen();
             DrawLed();
             Array.Copy(_pixels, dest, _pixels.Length);
         }
@@ -80,13 +88,15 @@ namespace nMO5
             }
         }
 
-        private void Dopaint()
+        private void DrawScreen()
         {
             var i = 0;
 
-            for (var y = 0; y < Height; y++)
+            DrawBorder();
+
+            for (var y = 0; y < 200; y++)
             {
-                var offset = y * Width;
+                var offset = (y + 8) * Width + 8;
                 var x = 0;
                 if (!_mem.IsDirty(y))
                 {
@@ -145,6 +155,35 @@ namespace nMO5
                         x++;
                         i++;
                     }
+                }
+            }
+        }
+
+        private void DrawBorder()
+        {
+            var bc = BorderColor;
+
+            // draw top/bottom borders
+            for (var y = 0; y < 8; y++)
+            {
+                var offset = y * Width;
+                var offset2 = (Height - 8 + y) * Width;
+                for (var x = 0; x < Width; x++)
+                {
+                    _pixels[x + offset] = bc;
+                    _pixels[x + offset2] = bc;
+                }
+            }
+
+			// draw left/right borders
+			for (var y = 0; y < Height - 16; y++)
+            {
+                var offset = (y + 8) * Width;
+                var offset2 = (y + 9) * Width - 8;
+                for (var x = 0; x < 8; x++)
+                {
+                    _pixels[x + offset] = bc;
+                    _pixels[x + offset2] = bc;
                 }
             }
         }
