@@ -10,11 +10,16 @@ namespace MO5Emulator
     public partial class AppDelegate : NSApplicationDelegate
     {
         private GameView Game => NSApplication.SharedApplication.Windows.OfType<MainWindow>().First().Game;
-        CheatWindowController _cheatController;
+        private CheatWindowController _cheatController;
 
         public AppDelegate()
         {
             _cheatController = new CheatWindowController();
+        }
+
+        public override bool ApplicationShouldTerminateAfterLastWindowClosed(NSApplication sender)
+        {
+            return true;
         }
 
         partial void HardReset(NSMenuItem sender)
@@ -67,16 +72,6 @@ namespace MO5Emulator
         {
             OpenFile(filename);
             return true;
-        }
-
-        public override void DidFinishLaunching(NSNotification notification)
-        {
-            // Insert code here to initialize your application
-        }
-
-        public override void WillTerminate(NSNotification notification)
-        {
-            // Insert code here to tear down your application
         }
     }
 }
