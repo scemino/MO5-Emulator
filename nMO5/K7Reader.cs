@@ -5,7 +5,7 @@ namespace nMO5
 {
 	internal class K7Reader
 	{
-		Stream _k7Fis;
+		private readonly Stream _k7Fis;
 
 		private K7Reader(Stream stream)
 		{

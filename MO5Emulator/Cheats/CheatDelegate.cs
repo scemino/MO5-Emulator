@@ -5,9 +5,9 @@ namespace MO5Emulator.Cheats
 {
 	class CheatDelegate : NSTableViewDelegate
 	{
-		CheatSource _source;
+        private readonly CheatSource _source;
 
-		public CheatDelegate(CheatSource source)
+        public CheatDelegate(CheatSource source)
 		{
 			_source = source;
 		}
@@ -17,30 +17,31 @@ namespace MO5Emulator.Cheats
 			var view = (NSTextField)tableView.MakeView("cheat", this);
 			if (view == null)
 			{
-				view = new NSTextField()
+				view = new NSTextField
 				{
 					Identifier = "cheat",
 					Bordered = false,
 					Editable = false
 				};
 			}
-			if (tableColumn.Identifier == "description")
-			{
-				view.StringValue = _source[(int)row].Description;
-			}
-			else if (tableColumn.Identifier == "address")
-			{
-				view.StringValue = _source[(int)row].Address.ToString("X");
-			}
-			else if (tableColumn.Identifier == "size")
-			{
-				view.IntValue = _source[(int)row].Format == ByteFormat.Two ? 2 : 1;
-			}
-			else if (tableColumn.Identifier == "value")
-			{
-				view.StringValue = _source[(int)row].Value.ToString("X");
-			}
-			return view;
+
+            switch (tableColumn.Identifier)
+            {
+                case "description":
+                    view.StringValue = _source[(int)row].Description;
+                    break;
+                case "address":
+                    view.StringValue = _source[(int)row].Address.ToString("X");
+                    break;
+                case "size":
+                    view.IntValue = _source[(int)row].Format == ByteFormat.Two ? 2 : 1;
+                    break;
+                case "value":
+                    view.StringValue = _source[(int)row].Value.ToString("X");
+                    break;
+            }
+
+            return view;
 		}
 	}
 }

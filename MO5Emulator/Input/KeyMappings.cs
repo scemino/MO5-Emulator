@@ -70,7 +70,7 @@ namespace MO5Emulator.Input
 			{(char)0xF700, new VirtualKey(Mo5Key.Up) },
 			{(char)0xF701, new VirtualKey(Mo5Key.Down) },
 			{(char)0xF702, new VirtualKey(Mo5Key.Left) },
-			{(char)0xF703, new VirtualKey(Mo5Key.Right) },
+			{(char)0xF703, new VirtualKey(Mo5Key.Right) }
 		};
     }
 }

@@ -7,7 +7,7 @@ namespace MO5Emulator.Cheats
 {
 	class CheatSource : NSTableViewSource, IEnumerable<Cheat>
 	{
-		private List<Cheat> _cheats;
+        private readonly List<Cheat> _cheats;
 
         public CheatSource(List<Cheat> cheats)
         {
