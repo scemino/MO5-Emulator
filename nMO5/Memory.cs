@@ -114,8 +114,8 @@ namespace nMO5
             var value = _mem[_mapper[page]][address & 0xFFF] & 0xFF;
             if (address == 0xA7C0)
             {
-                // indicates that the tape drive is present
-                return value | 0x80;
+                const int tapeDrivePresent = 0x80;
+                value |= tapeDrivePresent | (LightPenClick ? 0x20 : 0);
             }
             return value;
         }
@@ -379,12 +379,9 @@ namespace nMO5
                             _mapper[1] = 3;
                         }
                         // Mise à jour de ORA selon le masque DDRA
-                        op |= 0x80 + 0x20; // gestion de ,l'inter optique 
+                        op |= 0x80;
                         Ora = (Ora & (Ddra ^ 0xFF)) | (op & Ddra);
-                        if (LightPenClick)
-                            _mem[0xA + 2][0x7C0] = Ora | 0x20;
-                        else
-                            _mem[0xA + 2][0x7C0] = Ora & ~0x20;
+                        _mem[0xA + 2][0x7C0] = Ora;
                     }
                     else
                     {

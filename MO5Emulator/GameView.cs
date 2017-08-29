@@ -1,12 +1,12 @@
 ﻿using System;
-using MO5Emulator.Audio;
+using System.Linq;
 using AppKit;
 using CoreGraphics;
+using MO5Emulator.Audio;
+using MO5Emulator.Input;
 using nMO5;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform.MacOS;
-using System.Linq;
-using MO5Emulator.Input;
 
 namespace MO5Emulator
 {
@@ -32,11 +32,10 @@ namespace MO5Emulator
 
         protected override void OnLoad(EventArgs e)
         {
-            NSTrackingAreaOptions opts = ((NSTrackingAreaOptions.MouseMoved | NSTrackingAreaOptions.ActiveInKeyWindow | NSTrackingAreaOptions.InVisibleRect));
+            var opts = ((NSTrackingAreaOptions.MouseMoved | NSTrackingAreaOptions.ActiveInKeyWindow | NSTrackingAreaOptions.InVisibleRect));
             var trackingArea = new NSTrackingArea(new CGRect(0, 0, FittingSize.Width, FittingSize.Height), opts, Self, null);
             AddTrackingArea(trackingArea);
 
-            // Initialize settings, load textures and sounds here
             _colors = new Color[Screen.Width * Screen.Height];
 
             id = GL.GenTexture();
@@ -52,31 +51,6 @@ namespace MO5Emulator
             _machine = new Machine(_screen, _sound);
 
             base.OnLoad(e);
-        }
-
-        internal void OpenDisk(string path)
-        {
-            _machine.OpenDisk(path);
-        }
-
-        public void OpenK7(string k7)
-        {
-            _machine.OpenK7(k7);
-        }
-
-        public void OpenMemo(string path)
-		{
-            _machine.OpenMemo(path);
-		}
-
-        public void HardReset()
-        {
-            _machine.ResetHard();
-        }
-
-        public void SoftReset()
-        {
-            _machine.ResetSoft();
         }
 
         protected override void OnUpdateFrame(OpenTK.FrameEventArgs e)
@@ -157,19 +131,20 @@ namespace MO5Emulator
 
         public override void MouseDown(NSEvent theEvent)
         {
-            _screen.MouseClick = true;
+            Machine.Memory.LightPenClick = true;
         }
 
         public override void MouseUp(NSEvent theEvent)
         {
-            _screen.MouseClick = false;
+            Machine.Memory.LightPenClick = false;
         }
 
         public override void MouseMoved(NSEvent theEvent)
         {
-            var x = Screen.Width * theEvent.LocationInWindow.X / Size.Width;
-            var y = Screen.Height - (Screen.Height * theEvent.LocationInWindow.Y / Size.Height);
-            _screen.SetMousePosition((int)x, (int)y);
+            var x = Screen.Width * theEvent.LocationInWindow.X / Bounds.Width;
+            var y = Screen.Height - (Screen.Height * theEvent.LocationInWindow.Y / Bounds.Height);
+            Machine.Memory.LightPenX = (int)x - 8;
+            Machine.Memory.LightPenY = (int)y - 8;
         }
 
         protected override void OnRenderFrame(OpenTK.FrameEventArgs e)
@@ -180,7 +155,6 @@ namespace MO5Emulator
                           Screen.Width, Screen.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgba,
                           PixelType.UnsignedByte, _colors);
 
-            // Setup buffer
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             GL.MatrixMode(MatrixMode.Projection);

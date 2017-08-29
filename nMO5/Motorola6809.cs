@@ -3413,7 +3413,10 @@ namespace nMO5
 						// 0xFC: lecture du clavier TO8
 						// 0xFD: ecriture vers clavier TO8
 						// 0xFE: emission commande nanoreseau
-						// 0xFF: lecture coordonnees crayon optique
+						case 0xFF: // lecture coordonnees crayon optique
+							ReadPenXy();
+							_clock += 64;
+							break;
 						default:
                             System.Console.Error.WriteLine("opcode 11 {0:X2} not implemented", opcode0X11);
                             System.Console.Error.WriteLine(PrintState());
@@ -3425,11 +3428,21 @@ namespace nMO5
                     System.Console.Error.WriteLine("opcode {0:X2} not implemented", opcode);
                     System.Console.Error.WriteLine(PrintState());
                     break;
-            } // of case  opcode
-        } // of method fetch()
+            }
+        }
+
+		private void ReadPenXy()
+		{
+			if ((_mem.LightPenX < 0) || (_mem.LightPenX >= 320)) { Cc |= 1; Setcc(Cc); return; }
+			if ((_mem.LightPenY < 0) || (_mem.LightPenY >= 200)) { Cc |= 1; Setcc(Cc); return; }
+			_mem.Set16(S + 6, _mem.LightPenX);
+			_mem.Set16(S + 8, _mem.LightPenY);
+			Cc &= 0xFE;
+			Setcc(Cc);
+		}
 
         // DISASSEMBLE/DEBUG PART
-        public string PrintState()
+        private string PrintState()
         {
             Cc = Getcc();
             var s = new StringBuilder();

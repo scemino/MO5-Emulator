@@ -24,12 +24,12 @@ namespace MO5Emulator
 
         partial void HardReset(NSMenuItem sender)
         {
-            Game.HardReset();
+            Game.Machine.ResetHard();
         }
 
         partial void SoftReset(NSMenuItem sender)
         {
-            Game.SoftReset();
+            Game.Machine.ResetSoft();
         }
 
         partial void Debug(NSMenuItem sender)
@@ -38,7 +38,7 @@ namespace MO5Emulator
         }
 
         [Export("openDocument:")]
-        void OpenDialog(NSObject sender)
+        private void OpenDialog(NSObject sender)
         {
 			var dlg = NSOpenPanel.OpenPanel;
 			dlg.CanChooseFiles = true;
@@ -56,15 +56,15 @@ namespace MO5Emulator
             var ext = Path.GetExtension(path);
             if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".k7"))
             {
-                Game.OpenK7(path);
+                Game.Machine.OpenK7(path);
             }
             else if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".rom"))
             {
-                Game.OpenMemo(path);
+                Game.Machine.OpenMemo(path);
             }
 			else if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".fd"))
 			{
-				Game.OpenDisk(path);
+                Game.Machine.OpenDisk(path);
 			}
         }
 
