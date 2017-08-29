@@ -61,6 +61,15 @@ namespace nMO5
         // the emulator main loop
         private void FullSpeed()
         {
+            // Mise a jour du crayon optique a partir des donnée de la souris souris
+            if (_screen != null)
+            {
+                _mem.LightPenClick = _screen.MouseClick;
+                _mem.LightPenX = _screen.MouseX;
+                _mem.LightPenY = _screen.MouseY;
+            }
+
+            _mem.Set(0xA7E7, 0x00);
             // 3.9 ms haut écran (+0.3 irq)
             if (_irq)
             {
@@ -73,7 +82,10 @@ namespace nMO5
             }
 
             // 13ms fenetre
+            _mem.Set(0xA7E7, 0x80);
             _micro.FetchUntil(13100);
+
+            _mem.Set(0xA7E7, 0x00);
             _micro.FetchUntil(2800);
 
             if ((_mem.Crb & 0x01) == 0x01)

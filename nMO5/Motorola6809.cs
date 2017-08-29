@@ -2374,10 +2374,8 @@ namespace nMO5
 
         public void Irq()
         {
-            // mise à 1 du bit E sur le CC
+            /* mise � 1 du bit E sur le CC */
             Getcc();
-            if((Cc & 0x10)!=0) return;
-
             Cc |= 0x80;
             Setcc(Cc);
             S--;
@@ -2404,7 +2402,7 @@ namespace nMO5
             _mem.Write(S, A);
             S--;
             _mem.Write(S, Cc);
-            Pc = _mem.Read16(0xFFF8);
+            Pc = (_mem.Read(0xFFF8) << 8) | _mem.Read(0xFFF9);
             Cc |= 0x10;
             Setcc(Cc);
             _clock += 19;
@@ -2433,21 +2431,10 @@ namespace nMO5
         {
             while (_clock < clock) Fetch();
             _clock -= clock;
-            _mem._videolinecycle += clock;
-			//attente d'une fin de ligne
-			if (_mem._videolinecycle >= 64) { 
-                _mem._videolinecycle -= 64;
-                _mem._videolinenumber++;
-				//attente d'une fin de trame    
-				if (_mem._videolinenumber >= 312)
-                {
-                    _mem._videolinenumber -= 312;
-                }
-            }
             return _clock;
         }
 
-		private void Fetch()
+        private void Fetch()
         {
             int opcode = _mem.Read(Pc);
 			Pc++;
@@ -3420,16 +3407,13 @@ namespace nMO5
                             _clock += 64;
 							break;
 						// TODO:
+						// 0xF8: lecture position souris
 						// 0xF9: lecture des boutons de la souris
 						// 0xFA: envoi d'un octet a l'imprimante
 						// 0xFC: lecture du clavier TO8
 						// 0xFD: ecriture vers clavier TO8
 						// 0xFE: emission commande nanoreseau
-						//case 0xF8: // lecture position souris
-						case 0xFF: // lecture coordonnees crayon optique
-                            ReadPenXy();
-							_clock += 64;
-                            break;
+						// 0xFF: lecture coordonnees crayon optique
 						default:
                             System.Console.Error.WriteLine("opcode 11 {0:X2} not implemented", opcode0X11);
                             System.Console.Error.WriteLine(PrintState());
@@ -3441,18 +3425,8 @@ namespace nMO5
                     System.Console.Error.WriteLine("opcode {0:X2} not implemented", opcode);
                     System.Console.Error.WriteLine(PrintState());
                     break;
-            }
-        }
-
-		private void ReadPenXy()
-		{
-			if ((_mem.LightPenX < 0) || (_mem.LightPenX >= 320)) { Cc |= 1; Setcc(Cc); return; }
-			if ((_mem.LightPenY < 0) || (_mem.LightPenY >= 200)) { Cc |= 1; Setcc(Cc); return; }
-			_mem.Set16(S + 6, _mem.LightPenX);
-			_mem.Set16(S + 8, _mem.LightPenY);
-			Cc &= 0xFE;
-            Setcc(Cc);
-		}
+            } // of case  opcode
+        } // of method fetch()
 
         // DISASSEMBLE/DEBUG PART
         public string PrintState()
@@ -3466,5 +3440,5 @@ namespace nMO5
             s.AppendFormat(" CC=  {0:X2}", Cc);
             return s.ToString();
         }
-    }
+    } // of class M6809
 }

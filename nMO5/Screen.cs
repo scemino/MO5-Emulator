@@ -30,15 +30,34 @@ namespace nMO5
             Color.FromArgb(0xF0, 0x63, 0x00)
         };
 
-        private Color BorderColor => Palette[_mem.BorderColor];
+		private Color BorderColor
+		{
+			get
+			{
+                return Palette[_mem.BorderColor];
+			}
+		}
 
         private readonly Color[] _pixels;
 
         private Memory _mem;
 
+        public bool MouseClick { get; set; }
+        public int MouseX { get; private set; }
+        public int MouseY { get; private set; }
+
         public Screen()
         {
             _pixels = new Color[Width * Height];
+            MouseX = -1;
+            MouseY = -1;
+        }
+
+        // Mouse Event use for Lightpen emulation
+        public void SetMousePosition(int x, int y)
+        {
+            MouseX = x;
+            MouseY = y;
         }
 
         internal void Init(Memory memory)
