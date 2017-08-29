@@ -92,9 +92,9 @@
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="Reset" id="oOK-sn-PEt">
+                            <menuItem title="Tools" id="oOK-sn-PEt">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Reset" id="1ma-uf-pZk">
+                                <menu key="submenu" title="Tools" id="1ma-uf-pZk">
                                     <items>
                                         <menuItem title="Soft Reset" id="8x3-Nb-IrD">
                                             <modifierMask key="keyEquivalentModifierMask"/>

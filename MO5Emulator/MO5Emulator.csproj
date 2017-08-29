@@ -114,8 +114,8 @@
     <Compile Include="Cheats\CheatDelegate.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InterfaceDefinition Include="Main.storyboard" />
-    <InterfaceDefinition Include="CheatWindow.xib" />
+    <InterfaceDefinition Include="Resources\Base.lproj\CheatWindow.xib" />
+    <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\nMO5\nMO5.csproj">
@@ -126,6 +126,8 @@
   <ItemGroup>
     <BundleResource Include="Resources\bios\cd90-640.rom" />
     <BundleResource Include="Resources\bios\mo5.rom" />
+    <BundleResource Include="Resources\fr.lproj\CheatWindow.strings" />
+    <BundleResource Include="Resources\fr.lproj\Main.strings" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>
