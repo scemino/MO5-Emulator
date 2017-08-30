@@ -36,15 +36,11 @@ namespace nMO5
 
         private Memory _mem;
 
-        public Screen()
+        public Screen(Memory memory)
         {
             _pixels = new Color[Width * Height];
-        }
-
-        internal void Init(Memory memory)
-        {
-            _mem = memory;
-        }
+			_mem = memory;
+		}
 
         public void Update(Color[] dest)
         {

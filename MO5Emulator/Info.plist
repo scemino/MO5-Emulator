@@ -19,6 +19,8 @@
 			</array>
 			<key>NSDocumentClass</key>
 			<string>Document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
 		</dict>
 	</array>
 	<key>CFBundleIdentifier</key>

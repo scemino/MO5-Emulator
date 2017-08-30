@@ -71,6 +71,7 @@
     <Folder Include="Resources\bios\" />
     <Folder Include="Input\" />
     <Folder Include="Cheats\" />
+    <Folder Include="Assets.xcassets\K7.imageset\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -94,14 +95,6 @@
     <Compile Include="Audio\ALHelper.cs" />
     <Compile Include="Audio\SoundBuffer.cs" />
     <Compile Include="Audio\Sound.cs" />
-    <Compile Include="Window.cs" />
-    <Compile Include="Window.designer.cs">
-      <DependentUpon>Window.cs</DependentUpon>
-    </Compile>
-    <Compile Include="CheatWindow.cs" />
-    <Compile Include="CheatWindow.designer.cs">
-      <DependentUpon>CheatWindow.cs</DependentUpon>
-    </Compile>
     <Compile Include="CheatWindowController.cs" />
     <Compile Include="CheatWindowController.designer.cs">
       <DependentUpon>CheatWindowController.cs</DependentUpon>
@@ -112,9 +105,12 @@
     <Compile Include="Cheats\CheatSource.cs" />
     <Compile Include="Cheats\Cheat.cs" />
     <Compile Include="Cheats\CheatDelegate.cs" />
+    <Compile Include="CheatViewController.cs" />
+    <Compile Include="CheatViewController.designer.cs">
+      <DependentUpon>CheatViewController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <InterfaceDefinition Include="Resources\Base.lproj\CheatWindow.xib" />
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />
   </ItemGroup>
   <ItemGroup>
@@ -126,7 +122,6 @@
   <ItemGroup>
     <BundleResource Include="Resources\bios\cd90-640.rom" />
     <BundleResource Include="Resources\bios\mo5.rom" />
-    <BundleResource Include="Resources\fr.lproj\CheatWindow.strings" />
     <BundleResource Include="Resources\fr.lproj\Main.strings" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />

@@ -266,6 +266,12 @@ namespace nMO5
             Reset();
         }
 
+        public void CloseMemo()
+        {
+            _carflags = 0;
+            LoadRom();
+        }
+
         public void Rewind()
         {
             _k7Fis?.Seek(0, SeekOrigin.Begin);
@@ -303,7 +309,7 @@ namespace nMO5
             _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
         }
 
-        private void Reset()
+        private void Reset(bool hard = false)
         {
             _carflags &= 0xEC;
             LoadRom();

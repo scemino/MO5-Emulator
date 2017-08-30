@@ -14,11 +14,11 @@ namespace MO5Emulator
     {
         private int id;
         private Screen _screen;
-        private Machine _machine;
         private Color[] _colors;
-        private Sound _sound;
 
-        public Machine Machine => _machine;
+        AppDelegate AppDelegate => (AppDelegate) NSApplication.SharedApplication.Delegate;
+		public Machine Machine => AppDelegate.Machine;
+		public Sound Sound => AppDelegate.Sound;
 
         public GameView(CGRect frame)
         : base(frame)
@@ -46,20 +46,15 @@ namespace MO5Emulator
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
 
-            _screen = new Screen();
-            _sound = new Sound();
-            _machine = new Machine(_screen, _sound);
+			_screen = new Screen(Machine.Memory);
 
-            base.OnLoad(e);
+			base.OnLoad(e);
         }
 
         protected override void OnUpdateFrame(OpenTK.FrameEventArgs e)
         {
-            _machine.Step();
-            _sound.UpdateQueue();
-            var debugWindow = NSApplication.SharedApplication.Windows.OfType<CheatWindow>().FirstOrDefault();
-            debugWindow?.UpdateValues();
-
+            Machine.Step();
+            Sound.UpdateQueue();
             base.OnUpdateFrame(e);
         }
 
@@ -74,27 +69,27 @@ namespace MO5Emulator
         {
             if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask))
             {
-                _machine.Keyboard.KeyPressed(Mo5Key.Shift);
+                Machine.Keyboard.KeyPressed(Mo5Key.Shift);
             }
             else
             {
-                _machine.Keyboard.KeyReleased(Mo5Key.Shift);
+                Machine.Keyboard.KeyReleased(Mo5Key.Shift);
             }
             if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ControlKeyMask))
             {
-                _machine.Keyboard.KeyPressed(Mo5Key.Control);
+                Machine.Keyboard.KeyPressed(Mo5Key.Control);
             }
             else
             {
-                _machine.Keyboard.KeyReleased(Mo5Key.Control);
+                Machine.Keyboard.KeyReleased(Mo5Key.Control);
             }
             if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.CommandKeyMask))
             {
-                _machine.Keyboard.KeyPressed(Mo5Key.Basic);
+                Machine.Keyboard.KeyPressed(Mo5Key.Basic);
             }
             else
             {
-                _machine.Keyboard.KeyReleased(Mo5Key.Basic);
+                Machine.Keyboard.KeyReleased(Mo5Key.Basic);
             }
         }
 
@@ -102,14 +97,14 @@ namespace MO5Emulator
         {
             if (theEvent.CharactersIgnoringModifiers.Length == 0) return;
             var c = theEvent.CharactersIgnoringModifiers[0];
-            Keyboard(c, _machine.Keyboard.KeyPressed);
+            Keyboard(c, Machine.Keyboard.KeyPressed);
         }
 
         public override void KeyUp(NSEvent theEvent)
         {
             if (theEvent.CharactersIgnoringModifiers.Length == 0) return;
             var c = theEvent.CharactersIgnoringModifiers[0];
-            Keyboard(c, _machine.Keyboard.KeyReleased);
+            Keyboard(c, Machine.Keyboard.KeyReleased);
         }
 
         private void Keyboard(char c, Action<Mo5Key> action)
@@ -119,11 +114,11 @@ namespace MO5Emulator
 
             if (key.ShiftKey.HasValue && key.ShiftKey.Value)
             {
-                _machine.Keyboard.KeyPressed(Mo5Key.Shift);
+                Machine.Keyboard.KeyPressed(Mo5Key.Shift);
             }
             else
             {
-                _machine.Keyboard.KeyReleased(Mo5Key.Shift);
+                Machine.Keyboard.KeyReleased(Mo5Key.Shift);
             }
 
             action(key.Key);

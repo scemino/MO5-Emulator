@@ -1,5 +1,4 @@
 ﻿using System;
-
 using Foundation;
 using AppKit;
 
@@ -18,11 +17,6 @@ namespace MO5Emulator
 
         public CheatWindowController() : base("CheatWindow")
         {
-        }
-
-        public override void AwakeFromNib()
-        {
-            base.AwakeFromNib();
         }
     }
 }

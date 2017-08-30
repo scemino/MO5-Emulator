@@ -4,7 +4,7 @@ using AppKit;
 
 namespace MO5Emulator
 {
-    internal partial class MainWindow : NSWindow
+    public partial class MainWindow : NSWindow
     {
         public GameView Game { get; set; }
 
@@ -43,5 +43,11 @@ namespace MO5Emulator
 		{
 			Game.KeyUp(theEvent);
 		}
+
+        public override void PerformClose(NSObject sender)
+        {
+            base.PerformClose(sender);
+            NSApplication.SharedApplication.Terminate(NSApplication.SharedApplication);
+        }
     }
 }

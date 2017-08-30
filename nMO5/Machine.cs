@@ -5,26 +5,26 @@ namespace nMO5
     public class Machine
     {
         private readonly Memory _mem;
-        private readonly M6809 _micro;
-        private readonly Screen _screen;
+		private readonly M6809 _micro;
+		private readonly Keyboard _keyboard;
         private bool _irq;
 
         public Memory Memory => _mem;
+        public Keyboard Keyboard => _keyboard;
 
-        public Machine(Screen screen, ISound sound)
+        public event EventHandler Stepping;
+
+		public Machine(ISound sound)
         {
             _mem = new Memory();
-            _screen = screen;
             _micro = new M6809(_mem, sound);
-            Keyboard = new Keyboard(_mem);
-            _screen.Init(_mem);
+            _keyboard = new Keyboard(_mem);
         }
-
-		public Keyboard Keyboard { get; }
 
         public void Step()
         {
             FullSpeed();
+            Stepping?.Invoke(this, EventArgs.Empty);
         }
 
         public void OpenK7(string k7)
@@ -55,7 +55,8 @@ namespace nMO5
             for (var i = 0x2000; i < 0x3000; i++) {
                 _mem.Set(i, 0);
             }
-            _micro.Reset();
+            _mem.CloseMemo();
+			_micro.Reset();
         }
 
         // the emulator main loop

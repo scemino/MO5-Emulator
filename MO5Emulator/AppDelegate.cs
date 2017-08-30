@@ -1,20 +1,25 @@
 using System;
 using System.IO;
-using System.Linq;
 using AppKit;
 using Foundation;
+using MO5Emulator.Audio;
+using nMO5;
 
 namespace MO5Emulator
 {
     [Register("AppDelegate")]
     public partial class AppDelegate : NSApplicationDelegate
     {
-        private GameView Game => NSApplication.SharedApplication.Windows.OfType<MainWindow>().First().Game;
-        private CheatWindowController _cheatController;
+        private Sound _sound;
+        private Machine _machine;
+
+		public Machine Machine => _machine;
+		public Sound Sound => _sound;
 
         public AppDelegate()
         {
-            _cheatController = new CheatWindowController();
+			_sound = new Sound();
+			_machine = new Machine(_sound);
         }
 
         public override bool ApplicationShouldTerminateAfterLastWindowClosed(NSApplication sender)
@@ -22,56 +27,58 @@ namespace MO5Emulator
             return true;
         }
 
-        partial void HardReset(NSMenuItem sender)
+        public override bool OpenFile(NSApplication sender, string filename)
         {
-            Game.Machine.ResetHard();
+            var mainWindow = NSApplication.SharedApplication.MainWindow as MainWindow;
+            if (mainWindow == null) return false;
+            return OpenFile(filename);
         }
 
-        partial void SoftReset(NSMenuItem sender)
-        {
-            Game.Machine.ResetSoft();
-        }
-
-        partial void Debug(NSMenuItem sender)
-        {
-			_cheatController.Window.MakeKeyAndOrderFront(this);
-        }
-
-        [Export("openDocument:")]
-        private void OpenDialog(NSObject sender)
-        {
+		[Export("openDocument:")]
+		private void OpenDialog(NSObject sender)
+		{
 			var dlg = NSOpenPanel.OpenPanel;
 			dlg.CanChooseFiles = true;
 			dlg.CanChooseDirectories = false;
 
 			if (dlg.RunModal() == 1)
-            {
-                OpenFile(dlg.Url.Path);
-                NSDocumentController.SharedDocumentController.NoteNewRecentDocumentURL(dlg.Url);
-            }
-        }
-
-        private void OpenFile(string path)
-        {
-            var ext = Path.GetExtension(path);
-            if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".k7"))
-            {
-                Game.Machine.OpenK7(path);
-            }
-            else if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".rom"))
-            {
-                Game.Machine.OpenMemo(path);
-            }
-			else if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".fd"))
 			{
-                Game.Machine.OpenDisk(path);
+				OpenFile(dlg.Url.Path);
+				NSDocumentController.SharedDocumentController.NoteNewRecentDocumentURL(dlg.Url);
 			}
-        }
+		}
 
-        public override bool OpenFile(NSApplication sender, string filename)
-        {
-            OpenFile(filename);
-            return true;
-        }
+		private bool OpenFile(string path)
+		{
+			var ext = Path.GetExtension(path);
+			if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".k7"))
+			{
+				Machine.OpenK7(path);
+				return true;
+			}
+			if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".rom"))
+			{
+				Machine.OpenMemo(path);
+				return true;
+			}
+			if (StringComparer.OrdinalIgnoreCase.Equals(ext, ".fd"))
+			{
+				Machine.OpenDisk(path);
+				return true;
+			}
+			return false;
+		}
+
+		[Export("softReset:")]
+		private void SoftReset(NSObject sender)
+		{
+			Machine.ResetSoft();
+		}
+
+		[Export("hardReset:")]
+		private void HardReset(NSObject sender)
+		{
+			Machine.ResetHard();
+		}
     }
 }

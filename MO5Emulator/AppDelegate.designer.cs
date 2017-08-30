@@ -11,14 +11,6 @@ namespace MO5Emulator
 {
 	partial class AppDelegate
 	{
-		[Action ("Debug:")]
-		partial void Debug (AppKit.NSMenuItem sender);
-
-		[Action ("HardReset:")]
-		partial void HardReset (AppKit.NSMenuItem sender);
-
-		[Action ("SoftReset:")]
-		partial void SoftReset (AppKit.NSMenuItem sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
