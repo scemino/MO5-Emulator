@@ -2,15 +2,15 @@
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace MO5Emulator.Cheats
+namespace MO5Emulator
 {
 	class CheatSerializer
 	{
 		private Regex regex = new Regex(@"([^:]+):([0-9A-F]+);([0-9]);([0-9A-F]+)");
 
-		public List<Cheat> Load(string path)
+		public List<CheatModel> Load(string path)
 		{
-			var cheats = new List<Cheat>();
+			var cheats = new List<CheatModel>();
 			using (var file = File.OpenRead(path))
 			using (var reader = new StreamReader(file))
 			{
@@ -22,23 +22,23 @@ namespace MO5Emulator.Cheats
 					{
 						var desc = m.Groups[1].Value;
 						var address = int.Parse(m.Groups[2].Value, System.Globalization.NumberStyles.HexNumber);
-						var format = int.Parse(m.Groups[3].Value) == 2 ? ByteFormat.Two : ByteFormat.One;
+						var size = int.Parse(m.Groups[3].Value);
 						var value = int.Parse(m.Groups[4].Value, System.Globalization.NumberStyles.HexNumber);
-						cheats.Add(new Cheat(desc, address, value, format));
+						cheats.Add(new CheatModel(desc, address, value, size));
 					}
 				}
 			}
 			return cheats;
 		}
 
-		public void Save(string path, List<Cheat> cheats)
+		public void Save(string path, List<CheatModel> cheats)
 		{
 			using (var file = File.OpenWrite(path))
 			using (var writer = new StreamWriter(file))
 			{
 				foreach (var cheat in cheats)
 				{
-					writer.WriteLine("{0}:{1:X4};{2};{3:X}", cheat.Description, cheat.Address, cheat.Format == ByteFormat.One ? 1 : 2, cheat.Value);
+                    writer.WriteLine("{0}:{1:X4};{2};{3:X}", cheat.Description, cheat.Address, cheat.Size, cheat.Value);
 				}
 			}
 		}

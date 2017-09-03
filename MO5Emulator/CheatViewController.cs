@@ -1,9 +1,9 @@
 using System;
 using AppKit;
 using nMO5;
-using System.Linq;
 using System.Collections.Generic;
-using MO5Emulator.Cheats;
+using Foundation;
+using System.Linq;
 
 namespace MO5Emulator
 {
@@ -13,20 +13,16 @@ namespace MO5Emulator
         private Memory Memory => AppDelegate.Machine.Memory;
 
         private HashSet<int> _adresses = new HashSet<int>();
-        private List<Cheat> _cheats = new List<Cheat>();
+		private NSMutableArray _cheats = new NSMutableArray();
 
-        public CheatViewController(IntPtr handle) : base(handle)
-        {
-        }
+		public CheatModel SelectedCheat { get; private set; }
 
-        public override void AwakeFromNib()
-        {
-            base.AwakeFromNib();
+		[Export("cheatModelArray")]
+		public NSArray Cheats => _cheats;
 
-			var source = new CheatSource(_cheats);
-            CheatTableView.Source = source;
-			CheatTableView.Delegate = new CheatDelegate(source);
-        }
+		public CheatViewController(IntPtr handle) : base(handle)
+		{
+		}
 
         public override void ViewWillAppear()
         {
@@ -45,104 +41,207 @@ namespace MO5Emulator
             UpdateValues();
         }
 
-        partial void FindValue(NSButton sender)
+		public override void PrepareForSegue(NSStoryboardSegue segue, NSObject sender)
+		{
+			base.PrepareForSegue(segue, sender);
+
+			// Take action based on type
+			switch (segue.Identifier)
+			{
+				case "EditorSegue":
+                    var editor = segue.DestinationController as AddCheatViewController;
+					editor.Presentor = this;
+					editor.Cheat = SelectedCheat;
+					break;
+			}
+		}
+
+		public void DeleteCheat(NSWindow window)
+		{
+			if (CheatTableView.SelectedRow == -1)
+			{
+				var alert = new NSAlert
+				{
+					AlertStyle = NSAlertStyle.Critical,
+                    InformativeText = NSBundle.MainBundle.LocalizedString("Please select the cheat to remove from the list of cheats.", null),
+                    MessageText = NSBundle.MainBundle.LocalizedString("Delete Cheat", null),
+				};
+				alert.BeginSheet(window);
+			}
+			else
+			{
+				SelectedCheat = _cheats.GetItem<CheatModel>((nuint)CheatTableView.SelectedRow);
+                var message = NSBundle.MainBundle.LocalizedString("Are you sure you want to delete cheat `{0}` from the table?", null);
+				// Confirm delete
+				var alert = new NSAlert
+				{
+					AlertStyle = NSAlertStyle.Critical,
+					InformativeText = string.Format(message, SelectedCheat.Address),
+                    MessageText = NSBundle.MainBundle.LocalizedString("Delete Cheat", null),
+				};
+                alert.AddButton(NSBundle.MainBundle.LocalizedString("OK", null));
+                alert.AddButton(NSBundle.MainBundle.LocalizedString("Cancel", null));
+				alert.BeginSheetForResponse(window, (result) =>
+				{
+					// Delete?
+					if (result == 1000)
+					{
+						RemoveCheat(CheatTableView.SelectedRow);
+					}
+				});
+			}
+		}
+
+		public void EditCheat(NSWindow window)
+		{
+            if (CheatTableView.SelectedRow == -1)
+			{
+				var alert = new NSAlert
+				{
+					AlertStyle = NSAlertStyle.Informational,
+                    InformativeText = NSBundle.MainBundle.LocalizedString("Please select the cheat to edit from the list of cheats.", null),
+                    MessageText = NSBundle.MainBundle.LocalizedString("Edit Cheat", null),
+				};
+				alert.BeginSheet(window);
+			}
+			else
+			{
+                SelectedCheat = _cheats.GetItem<CheatModel>((nuint)CheatTableView.SelectedRow);
+				PerformSegue("EditorSegue", this);
+			}
+		}
+
+        public void LoadCheats(NSWindow window)
         {
-            var mem = Memory;
-            var value = ValueTextField.IntValue;
-            Func<int, List<int>> find;
-            Func<int, int> read;
-            if (RadioFormat.State == NSCellStateValue.On)
-            {
-                find = mem.Find16;
-                read = mem.Read16;
-            }
-            else
-            {
-                find = mem.Find8;
-                read = mem.Read;
-            }
-            if (_adresses.Count == 0)
-            {
-                var newValues = find(value);
-                foreach (var addr in newValues)
-                {
-                    _adresses.Add(addr);
-                }
-            }
-            else
-            {
-                foreach (var addr in _adresses.ToList())
-                {
-                    if (read(addr) != value)
-                    {
-                        _adresses.Remove(addr);
-                    }
-                }
-            }
-            if (_adresses.Count == 1)
-            {
-                AdressTextField.IntValue = _adresses.First();
-            }
-            StatusTextField.StringValue = string.Format("{0} occurrences found ({1})", _adresses.Count, _adresses.FirstOrDefault());
+			var dlg = NSOpenPanel.OpenPanel;
+			dlg.CanChooseFiles = true;
+			dlg.CanChooseDirectories = false;
+
+			if (dlg.RunModal() == 1)
+			{
+				var serializer = new CheatSerializer();
+                var items = new NSMutableArray();
+                items.AddObjects(serializer.Load(dlg.Url.Path).ToArray());
+                SetCheat(items);
+			}
         }
 
-        partial void WriteValue(NSButton sender)
-        {
-            var mem = Memory;
-            var address = AdressTextField.IntValue;
-            var value = ValueTextField.IntValue;
-            if (RadioFormat.State == NSCellStateValue.On)
-            {
-                mem.Set16(address, value);
-            }
-            else
-            {
-                mem.Set(address, value);
-            }
-        }
+        public void SaveCheats(NSWindow window)
+		{
+		    var dlg = NSSavePanel.SavePanel;
 
-        partial void AddCheat(NSButton sender)
-        {
-            var address = AdressTextField.IntValue;
-            var value = ValueTextField.IntValue;
-            var format = RadioFormat.State == NSCellStateValue.On ?
-                                    ByteFormat.Two : ByteFormat.One;
-            _cheats.Add(new Cheat(DescriptionTextField.StringValue, address, value, format));
-            CheatTableView.ReloadData();
-        }
-
-        partial void LoadCheats(NSButton sender)
-        {
-            var dlg = NSOpenPanel.OpenPanel;
-            dlg.CanChooseFiles = true;
-            dlg.CanChooseDirectories = false;
-
-            if (dlg.RunModal() == 1)
+		    if (dlg.RunModal() == 1)
             {
-                _cheats.Clear();
                 var serializer = new CheatSerializer();
-                _cheats.AddRange(serializer.Load(dlg.Url.Path));
-                CheatTableView.ReloadData();
+                var cheats = GetCheats().ToList();
+                serializer.Save(dlg.Url.Path, cheats);
             }
         }
 
-        partial void SaveCheats(NSButton sender)
-        {
-            var dlg = NSSavePanel.SavePanel;
+        [Export("addObject:")]
+		public void AddCheat(CheatModel cheat)
+		{
+			WillChangeValue("cheatModelArray");
+			_cheats.Add(cheat);
+			DidChangeValue("cheatModelArray");
+		}
 
-            if (dlg.RunModal() == 1)
-            {
-                var serializer = new CheatSerializer();
-                serializer.Save(dlg.Url.Path, _cheats);
-            }
-        }
+		[Export("insertObject:inCheatModelArrayAtIndex:")]
+		public void InsertCheat(CheatModel cheat, nint index)
+		{
+			WillChangeValue("cheatModelArray");
+			_cheats.Insert(cheat, index);
+			DidChangeValue("cheatModelArray");
+		}
 
-        private void UpdateValues()
+		[Export("removeObjectFromCheatModelArrayAtIndex:")]
+		public void RemoveCheat(nint index)
+		{
+			WillChangeValue("cheatModelArray");
+			_cheats.RemoveObject(index);
+			DidChangeValue("cheatModelArray");
+		}
+
+		[Export("setCheatModelArray:")]
+		public void SetCheat(NSMutableArray array)
+		{
+			WillChangeValue("cheatModelArray");
+			_cheats = array;
+			DidChangeValue("cheatModelArray");
+		}
+
+		// TODO
+		//partial void FindValue(NSButton sender)
+		//{
+		//    var mem = Memory;
+		//    var value = ValueTextField.IntValue;
+		//    Func<int, List<int>> find;
+		//    Func<int, int> read;
+		//    if (RadioFormat.State == NSCellStateValue.On)
+		//    {
+		//        find = mem.Find16;
+		//        read = mem.Read16;
+		//    }
+		//    else
+		//    {
+		//        find = mem.Find8;
+		//        read = mem.Read;
+		//    }
+		//    if (_adresses.Count == 0)
+		//    {
+		//        var newValues = find(value);
+		//        foreach (var addr in newValues)
+		//        {
+		//            _adresses.Add(addr);
+		//        }
+		//    }
+		//    else
+		//    {
+		//        foreach (var addr in _adresses.ToList())
+		//        {
+		//            if (read(addr) != value)
+		//            {
+		//                _adresses.Remove(addr);
+		//            }
+		//        }
+		//    }
+		//    if (_adresses.Count == 1)
+		//    {
+		//        AdressTextField.IntValue = _adresses.First();
+		//    }
+		//    StatusTextField.StringValue = string.Format("{0} occurrences found ({1})", _adresses.Count, _adresses.FirstOrDefault());
+		//}
+
+		// TODO
+		//partial void WriteValue(NSButton sender)
+		//{
+		//    var mem = Memory;
+		//    var address = AdressTextField.IntValue;
+		//    var value = ValueTextField.IntValue;
+		//    if (RadioFormat.State == NSCellStateValue.On)
+		//    {
+		//        mem.Set16(address, value);
+		//    }
+		//    else
+		//    {
+		//        mem.Set(address, value);
+		//    }
+		//}
+
+		private IEnumerable<CheatModel> GetCheats()
+		{
+			for (nuint i = 0; i < _cheats.Count; i++)
+			{
+				yield return _cheats.GetItem<CheatModel>(i);
+			}
+		}
+
+		private void UpdateValues()
         {
             var mem = Memory;
-            foreach (var cheat in _cheats)
+            foreach (var cheat in GetCheats())
             {
-                if (cheat.Format == ByteFormat.One)
+                if (cheat.Size == 1)
                 {
                     mem.Set(cheat.Address, cheat.Value);
                 }

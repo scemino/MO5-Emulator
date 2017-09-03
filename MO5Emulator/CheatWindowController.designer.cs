@@ -9,12 +9,23 @@ using System.CodeDom.Compiler;
 
 namespace MO5Emulator
 {
-    [Register ("CheatWindowController")]
-    partial class CheatWindowController
-    {
-        
-        void ReleaseDesignerOutlets ()
-        {
-        }
-    }
+	[Register ("CheatWindowController")]
+	partial class CheatWindowController
+	{
+		[Action ("EditCheat:")]
+		partial void EditCheat (AppKit.NSToolbarItem sender);
+
+		[Action ("LoadCheats:")]
+		partial void LoadCheats (AppKit.NSToolbarItem sender);
+
+		[Action ("RemoveCheat:")]
+		partial void RemoveCheat (AppKit.NSToolbarItem sender);
+
+		[Action ("SaveCheats:")]
+		partial void SaveCheats (AppKit.NSToolbarItem sender);
+		
+		void ReleaseDesignerOutlets ()
+		{
+		}
+	}
 }

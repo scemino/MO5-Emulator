@@ -2,7 +2,7 @@
 /* Class = "NSMenuItem"; title = "MO5 Emulator"; ObjectID = "1Xt-HY-uBw"; */
 "1Xt-HY-uBw.title" = "MO5 Emulator";
 
-/* Class = "NSMenu"; title = "Reset"; ObjectID = "1ma-uf-pZk"; */
+/* Class = "NSMenu"; title = "Tools"; ObjectID = "1ma-uf-pZk"; */
 "1ma-uf-pZk.title" = "Outils";
 
 /* Class = "NSMenuItem"; title = "Quit MO5 Emulator"; ObjectID = "4sb-4s-VLi"; */
@@ -11,6 +11,9 @@
 /* Class = "NSMenuItem"; title = "About MO5 Emulator"; ObjectID = "5kV-Vb-QxS"; */
 "5kV-Vb-QxS.title" = "A propos de MO5 Emulator";
 
+/* Class = "NSTableColumn"; headerCell.title = "Description"; ObjectID = "6sK-PP-uR0"; */
+"6sK-PP-uR0.headerCell.title" = "Description";
+
 /* Class = "NSMenuItem"; title = "Soft Reset"; ObjectID = "8x3-Nb-IrD"; */
 "8x3-Nb-IrD.title" = "Réinitialiser";
 
@@ -18,28 +21,40 @@
 "AYu-sK-qS6.title" = "Menu principal";
 
 /* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
-"BOF-NM-1cW.title" = "Préférences…";
+"BOF-NM-1cW.title" = "Préferences…";
+
+/* Class = "NSTextFieldCell"; title = "Size and format:"; ObjectID = "D0W-B4-EwR"; */
+"D0W-B4-EwR.title" = "Taille et format:";
 
 /* Class = "NSMenuItem"; title = "Close"; ObjectID = "DVo-aG-piG"; */
 "DVo-aG-piG.title" = "Fermer";
 
-/* Class = "NSMenu"; title = "Help"; ObjectID = "F2S-fz-NVQ"; */
-"F2S-fz-NVQ.title" = "Aide";
+/* Class = "NSToolbarItem"; label = "Load"; ObjectID = "E0D-lf-FrW"; */
+"E0D-lf-FrW.label" = "Charger";
 
-/* Class = "NSMenuItem"; title = "MO5 Emulator Help"; ObjectID = "FKE-Sm-Kum"; */
-"FKE-Sm-Kum.title" = "Aide de MO5 Emulator";
+/* Class = "NSToolbarItem"; paletteLabel = "Load"; ObjectID = "E0D-lf-FrW"; */
+"E0D-lf-FrW.paletteLabel" = "Charger";
 
-/* Class = "NSMenuItem"; title = "View"; ObjectID = "H8h-7b-M4v"; */
-"H8h-7b-M4v.title" = "Affichage";
+/* Class = "NSButtonCell"; title = "2 bytes [0..65 535]"; ObjectID = "Eal-uy-0Op"; */
+"Eal-uy-0Op.title" = "2 octets [0..65 535]";
 
-/* Class = "NSMenu"; title = "View"; ObjectID = "HyV-fh-RgO"; */
-"HyV-fh-RgO.title" = "Affichage";
+/* Class = "NSToolbarItem"; label = "Add"; ObjectID = "HU0-dH-kQz"; */
+"HU0-dH-kQz.label" = "Ajouter";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Add"; ObjectID = "HU0-dH-kQz"; */
+"HU0-dH-kQz.paletteLabel" = "Ajouter";
 
 /* Class = "NSMenuItem"; title = "Open…"; ObjectID = "IAo-SY-fd9"; */
 "IAo-SY-fd9.title" = "Ouvrir…";
 
 /* Class = "NSWindow"; title = "MO5 Emulator"; ObjectID = "IQv-IB-iLA"; */
 "IQv-IB-iLA.title" = "MO5 Emulator";
+
+/* Class = "NSButtonCell"; title = "1 byte [0..255]"; ObjectID = "Ig6-uN-3sD"; */
+"Ig6-uN-3sD.title" = "1 octet [0..255]";
+
+/* Class = "NSButtonCell"; title = "Add"; ObjectID = "Jsi-L2-Nwd"; */
+"Jsi-L2-Nwd.title" = "Ajouter";
 
 /* Class = "NSMenuItem"; title = "Show All"; ObjectID = "Kd2-mp-pUS"; */
 "Kd2-mp-pUS.title" = "Tout montrer";
@@ -59,8 +74,20 @@
 /* Class = "NSMenuItem"; title = "Hide MO5 Emulator"; ObjectID = "Olw-nP-bQN"; */
 "Olw-nP-bQN.title" = "Masquer MO5 Emulator";
 
+/* Class = "NSTableColumn"; headerCell.title = "Value"; ObjectID = "Qpo-yq-ILe"; */
+"Qpo-yq-ILe.headerCell.title" = "Valeur";
+
 /* Class = "NSMenuItem"; title = "Zoom"; ObjectID = "R4o-n2-Eq4"; */
 "R4o-n2-Eq4.title" = "Zoom";
+
+/* Class = "NSToolbarItem"; label = "Save"; ObjectID = "Rl0-oo-Txd"; */
+"Rl0-oo-Txd.label" = "Enregistrer";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Save"; ObjectID = "Rl0-oo-Txd"; */
+"Rl0-oo-Txd.paletteLabel" = "Save";
+
+/* Class = "NSButtonCell"; title = "Cancel"; ObjectID = "S8h-IX-hry"; */
+"S8h-IX-hry.title" = "Annuler";
 
 /* Class = "NSMenu"; title = "Window"; ObjectID = "Td7-aD-5lo"; */
 "Td7-aD-5lo.title" = "Fenêtre";
@@ -68,17 +95,44 @@
 /* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
 "Vdr-fp-XzO.title" = "Masquer les autres";
 
-/* Class = "NSMenuItem"; title = "New"; ObjectID = "Was-JA-tGl"; */
-"Was-JA-tGl.title" = "Nouveau";
+/* Class = "NSToolbarItem"; label = "Remove"; ObjectID = "Vvn-mt-sA2"; */
+"Vvn-mt-sA2.label" = "Supprimer";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Remove"; ObjectID = "Vvn-mt-sA2"; */
+"Vvn-mt-sA2.paletteLabel" = "Supprimer";
+
+/* Class = "NSTextFieldCell"; title = "Value:"; ObjectID = "WE9-dI-QKj"; */
+"WE9-dI-QKj.title" = "Valeur:";
+
+/* Class = "NSWindow"; title = "Cheat"; ObjectID = "aCI-T6-Pgg"; */
+"aCI-T6-Pgg.title" = "Tricher";
 
 /* Class = "NSMenuItem"; title = "Window"; ObjectID = "aUF-d1-5bR"; */
 "aUF-d1-5bR.title" = "Fenêtre";
 
-/* Class = "NSMenu"; title = "Essai"; ObjectID = "bib-Uj-vzu"; */
+/* Class = "NSTextFieldCell"; title = "Table View Cell"; ObjectID = "adi-Wc-ShA"; */
+"adi-Wc-ShA.title" = "Table View Cell";
+
+/* Class = "NSMenu"; title = "File"; ObjectID = "bib-Uj-vzu"; */
 "bib-Uj-vzu.title" = "Fichier";
 
-/* Class = "NSMenuItem"; title = "Essai"; ObjectID = "dMs-cI-mzQ"; */
+/* Class = "NSTextFieldCell"; title = "Table View Cell"; ObjectID = "cJj-WG-oY4"; */
+"cJj-WG-oY4.title" = "Table View Cell";
+
+/* Class = "NSMenuItem"; title = "File"; ObjectID = "dMs-cI-mzQ"; */
 "dMs-cI-mzQ.title" = "Fichier";
+
+/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "eeh-kn-7WO"; */
+"eeh-kn-7WO.title" = "Text Cell";
+
+/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "fT1-sA-79Y"; */
+"fT1-sA-79Y.title" = "Text Cell";
+
+/* Class = "NSToolbarItem"; label = "Edit"; ObjectID = "gco-BA-zT7"; */
+"gco-BA-zT7.label" = "Editer";
+
+/* Class = "NSToolbarItem"; paletteLabel = "Edit"; ObjectID = "gco-BA-zT7"; */
+"gco-BA-zT7.paletteLabel" = "Editer";
 
 /* Class = "NSMenuItem"; title = "Hard Reset"; ObjectID = "hnA-l0-zks"; */
 "hnA-l0-zks.title" = "Redémarrer";
@@ -86,20 +140,29 @@
 /* Class = "NSMenu"; title = "Services"; ObjectID = "hz9-B4-Xy5"; */
 "hz9-B4-Xy5.title" = "Services";
 
-/* Class = "NSMenuItem"; title = "Reset"; ObjectID = "oOK-sn-PEt"; */
-"oOK-sn-PEt.title" = "Redémarrer";
+/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "i51-DD-A9i"; */
+"i51-DD-A9i.title" = "Text Cell";
+
+/* Class = "NSTextFieldCell"; title = "Address:"; ObjectID = "keB-t3-2D7"; */
+"keB-t3-2D7.title" = "Adresse:";
+
+/* Class = "NSMenuItem"; title = "Tools"; ObjectID = "oOK-sn-PEt"; */
+"oOK-sn-PEt.title" = "Outils";
 
 /* Class = "NSMenu"; title = "Open Recent"; ObjectID = "oas-Oc-fiZ"; */
-"oas-Oc-fiZ.title" = "Fichiers récents";
+"oas-Oc-fiZ.title" = "Fichiers Récents";
+
+/* Class = "NSTextFieldCell"; title = "Description:"; ObjectID = "r6d-xo-lWL"; */
+"r6d-xo-lWL.title" = "Description:";
+
+/* Class = "NSTableColumn"; headerCell.title = "Address"; ObjectID = "rPx-nC-EjN"; */
+"rPx-nC-EjN.headerCell.title" = "Adresse";
 
 /* Class = "NSMenuItem"; title = "Open Recent"; ObjectID = "tXI-mr-wws"; */
-"tXI-mr-wws.title" = "Fichiers récents";
+"tXI-mr-wws.title" = "Fichiers Récents";
 
 /* Class = "NSMenu"; title = "MO5 Emulator"; ObjectID = "uQy-DD-JDr"; */
 "uQy-DD-JDr.title" = "MO5 Emulator";
 
 /* Class = "NSMenuItem"; title = "Clear Menu"; ObjectID = "vNY-rz-j42"; */
 "vNY-rz-j42.title" = "Effacer";
-
-/* Class = "NSMenuItem"; title = "Help"; ObjectID = "wpr-3q-Mcd"; */
-"wpr-3q-Mcd.title" = "Aide";

@@ -64,14 +64,33 @@
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-512.png" />
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-512%402x.png" />
     <ImageAsset Include="Assets.xcassets\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Save.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Save.imageset\ic_file_upload.png" />
+    <ImageAsset Include="Assets.xcassets\Save.imageset\ic_file_upload_2x.png" />
+    <ImageAsset Include="Assets.xcassets\Load.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Load.imageset\ic_file_download.png" />
+    <ImageAsset Include="Assets.xcassets\Load.imageset\ic_file_download_2x.png" />
+    <ImageAsset Include="Assets.xcassets\Add.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Remove.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Add.imageset\ic_add.png" />
+    <ImageAsset Include="Assets.xcassets\Add.imageset\ic_add_2x.png" />
+    <ImageAsset Include="Assets.xcassets\Remove.imageset\ic_remove.png" />
+    <ImageAsset Include="Assets.xcassets\Remove.imageset\ic_remove_2x.png" />
+    <ImageAsset Include="Assets.xcassets\Edit.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Edit.imageset\ic_mode_edit.png" />
+    <ImageAsset Include="Assets.xcassets\Edit.imageset\ic_mode_edit_2x.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
     <Folder Include="Audio\" />
     <Folder Include="Resources\bios\" />
     <Folder Include="Input\" />
-    <Folder Include="Cheats\" />
     <Folder Include="Assets.xcassets\K7.imageset\" />
+    <Folder Include="Assets.xcassets\Save.imageset\" />
+    <Folder Include="Assets.xcassets\Load.imageset\" />
+    <Folder Include="Assets.xcassets\Add.imageset\" />
+    <Folder Include="Assets.xcassets\Remove.imageset\" />
+    <Folder Include="Assets.xcassets\Edit.imageset\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -80,10 +99,6 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="WindowController.cs" />
-    <Compile Include="WindowController.designer.cs">
-      <DependentUpon>WindowController.cs</DependentUpon>
-    </Compile>
     <Compile Include="MainWindow.cs" />
     <Compile Include="MainWindow.designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
@@ -95,19 +110,28 @@
     <Compile Include="Audio\ALHelper.cs" />
     <Compile Include="Audio\SoundBuffer.cs" />
     <Compile Include="Audio\Sound.cs" />
+    <Compile Include="Input\VirtualKey.cs" />
+    <Compile Include="Input\KeyMappings.cs" />
+    <Compile Include="CheatViewController.cs" />
+    <Compile Include="CheatViewController.designer.cs">
+      <DependentUpon>CheatViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AddCheatViewController.cs" />
+    <Compile Include="AddCheatViewController.designer.cs">
+      <DependentUpon>AddCheatViewController.cs</DependentUpon>
+    </Compile>
     <Compile Include="CheatWindowController.cs" />
     <Compile Include="CheatWindowController.designer.cs">
       <DependentUpon>CheatWindowController.cs</DependentUpon>
     </Compile>
-    <Compile Include="Input\VirtualKey.cs" />
-    <Compile Include="Input\KeyMappings.cs" />
-    <Compile Include="Cheats\CheatSerializer.cs" />
-    <Compile Include="Cheats\CheatSource.cs" />
-    <Compile Include="Cheats\Cheat.cs" />
-    <Compile Include="Cheats\CheatDelegate.cs" />
-    <Compile Include="CheatViewController.cs" />
-    <Compile Include="CheatViewController.designer.cs">
-      <DependentUpon>CheatViewController.cs</DependentUpon>
+    <Compile Include="HexFormatter.cs" />
+    <Compile Include="CheatModel.cs" />
+    <Compile Include="CheatModel.designer.cs">
+      <DependentUpon>CheatModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CheatSerializer.cs" />
+    <Compile Include="HexFormatter.designer.cs">
+      <DependentUpon>HexFormatter.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -122,7 +146,9 @@
   <ItemGroup>
     <BundleResource Include="Resources\bios\cd90-640.rom" />
     <BundleResource Include="Resources\bios\mo5.rom" />
+    <BundleResource Include="Resources\.DS_Store" />
     <BundleResource Include="Resources\fr.lproj\Main.strings" />
+    <BundleResource Include="Resources\fr.lproj\Localizable.strings" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>
