@@ -9,6 +9,10 @@ namespace MO5Emulator
 	{
         public CheatViewController Controller => ContentViewController as CheatViewController;
 
+        public CheatWindowController()
+        {
+        }
+
 		public CheatWindowController (IntPtr handle) : base (handle)
 		{
 		}
@@ -33,7 +37,7 @@ namespace MO5Emulator
 			Controller.SaveCheats(this.Window);
 		}
 
-		public override void PrepareForSegue(NSStoryboardSegue segue, Foundation.NSObject sender)
+        public override void PrepareForSegue(NSStoryboardSegue segue, Foundation.NSObject sender)
 		{
 			base.PrepareForSegue(segue, sender);
 
@@ -42,17 +46,16 @@ namespace MO5Emulator
 				case "AddCheatSegue":
                     {
                         var editor = segue.DestinationController as AddCheatViewController;
-                        editor.Presentor = ContentViewController as CheatViewController;
                         editor.Cheat = new CheatModel();
 
                         // Wire-up
-                        editor.CheatModified += (o,cheat) =>
+                        editor.CheatModified += (o,e) =>
                         {
-                            editor.Presentor.AddCheat(editor.Cheat);
-                        };
-                    }
+                            ((CheatViewController)ContentViewController).AddCheat(editor.Cheat);
+						};
+					}
 					break;
 			}
 		}
-	}
+    }
 }

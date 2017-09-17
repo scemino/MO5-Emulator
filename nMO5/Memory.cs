@@ -125,36 +125,6 @@ namespace nMO5
             return Read(address) << 8 | Read(address + 1);
         }
 
-        public List<int> Find8(int value)
-        {
-            var adresses = new List<int>();
-            for (int addr = 0x2200; addr <= 0x9FFF; addr++)
-            {
-                var memValue = Read(addr);
-                if (memValue == value)
-                {
-                    adresses.Add(addr);
-                }
-            }
-            return adresses;
-        }
-
-        public List<int> Find16(int value)
-        {
-            var adresses = new List<int>();
-            for (int addr = 0x2200; addr <= 0x9FFF; addr++)
-            {
-                var memValue = Read(addr);
-                memValue <<= 8;
-                memValue |= Read(addr + 1);
-                if (memValue == value)
-                {
-                    adresses.Add(addr);
-                }
-            }
-            return adresses;
-        }
-
         // write with io
         public void Write(int address, int value)
         {

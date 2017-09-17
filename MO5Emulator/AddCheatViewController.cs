@@ -6,12 +6,12 @@ using Foundation;
 
 namespace MO5Emulator
 {
+
     public partial class AddCheatViewController : NSViewController
 	{
-        private int byteSize = 1;
         private CheatModel _cheat;
 
-        public CheatViewController Presentor { get; internal set; }
+        public NSViewController Presentor { get; internal set; }
 
         public event EventHandler CheatModified;
 
@@ -40,7 +40,7 @@ namespace MO5Emulator
             AddButton.Activated += (sender, e) => AddCheat();
         }
 
-        bool Validate()
+        private bool Validate()
         {
             if (string.IsNullOrEmpty(AddressTextField.StringValue))
             {
@@ -58,9 +58,8 @@ namespace MO5Emulator
 
         partial void ByteSize(NSButton sender)
         {
-            byteSize = (int)sender.Tag;
             ((NSNumberFormatter)ValueTextField.Formatter).Minimum = 0;
-            ((NSNumberFormatter)ValueTextField.Formatter).Maximum = Math.Pow(2, byteSize * 8) - 1;
+            ((NSNumberFormatter)ValueTextField.Formatter).Maximum = Math.Pow(2, Cheat.Size * 8) - 1;
         }
 
         private void AddCheat()
@@ -68,9 +67,6 @@ namespace MO5Emulator
             if (!Validate())
                 return;
             
-            var address = AddressTextField.IntValue;
-            var value = ValueTextField.IntValue;
-
             CheatModified?.Invoke(this, EventArgs.Empty);
             CloseSheet();
         }
@@ -80,9 +76,9 @@ namespace MO5Emulator
             CloseSheet();
         }
 
-		private void CloseSheet()
-		{
-			Presentor.DismissViewController(this);
-		}
+        private void CloseSheet()
+        {
+            DismissViewController(this);
+        }
 	}
 }

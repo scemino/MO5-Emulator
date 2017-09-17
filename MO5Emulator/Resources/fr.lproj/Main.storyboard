@@ -16,39 +16,39 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="MO5 Emulator" systemMenu="apple" id="uQy-DD-JDr">
                                     <items>
-                                        <menuItem title="About MO5 Emulator" id="5kV-Vb-QxS">
+                                        <menuItem title="A propos de MO5 Emulator" id="5kV-Vb-QxS">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="orderFrontStandardAboutPanel:" target="Ady-hI-5gd" id="Exp-CZ-Vem"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
-                                        <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW"/>
+                                        <menuItem title="Préférences…" keyEquivalent="," id="BOF-NM-1cW"/>
                                         <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
                                         <menuItem title="Services" id="NMo-om-nkz">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <menu key="submenu" title="Services" systemMenu="services" id="hz9-B4-Xy5"/>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="4je-JR-u6R"/>
-                                        <menuItem title="Hide MO5 Emulator" keyEquivalent="h" id="Olw-nP-bQN">
+                                        <menuItem title="Masquer MO5 Emulator" keyEquivalent="h" id="Olw-nP-bQN">
                                             <connections>
                                                 <action selector="hide:" target="Ady-hI-5gd" id="PnN-Uc-m68"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Hide Others" keyEquivalent="h" id="Vdr-fp-XzO">
+                                        <menuItem title="Masquer les autres" keyEquivalent="h" id="Vdr-fp-XzO">
                                             <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                             <connections>
                                                 <action selector="hideOtherApplications:" target="Ady-hI-5gd" id="VT4-aY-XCT"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Show All" id="Kd2-mp-pUS">
+                                        <menuItem title="Tout afficher" id="Kd2-mp-pUS">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="unhideAllApplications:" target="Ady-hI-5gd" id="Dhg-Le-xox"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="kCx-OE-vgT"/>
-                                        <menuItem title="Quit MO5 Emulator" keyEquivalent="q" id="4sb-4s-VLi">
+                                        <menuItem title="Quitter MO5 Emulator" keyEquivalent="q" id="4sb-4s-VLi">
                                             <connections>
                                                 <action selector="terminate:" target="Ady-hI-5gd" id="Te7-pn-YzF"/>
                                             </connections>
@@ -56,18 +56,18 @@
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="File" id="dMs-cI-mzQ">
+                            <menuItem title="Fichier" id="dMs-cI-mzQ">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="File" id="bib-Uj-vzu">
+                                <menu key="submenu" title="Fichier" id="bib-Uj-vzu">
                                     <items>
-                                        <menuItem title="Open…" keyEquivalent="o" id="IAo-SY-fd9">
+                                        <menuItem title="Ouvrir…" keyEquivalent="o" id="IAo-SY-fd9">
                                             <connections>
                                                 <action selector="openDocument:" target="Ady-hI-5gd" id="SMt-PO-RDs"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Open Recent" id="tXI-mr-wws">
+                                        <menuItem title="Fichiers récents" id="tXI-mr-wws">
                                             <modifierMask key="keyEquivalentModifierMask"/>
-                                            <menu key="submenu" title="Open Recent" systemMenu="recentDocuments" id="oas-Oc-fiZ">
+                                            <menu key="submenu" title="Fichiers récents" systemMenu="recentDocuments" id="oas-Oc-fiZ">
                                                 <items>
                                                     <menuItem title="Clear Menu" id="vNY-rz-j42">
                                                         <modifierMask key="keyEquivalentModifierMask"/>
@@ -79,18 +79,18 @@
                                             </menu>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="boG-6v-u5r"/>
-                                        <menuItem title="Soft Reset" keyEquivalent="r" id="8x3-Nb-IrD">
+                                        <menuItem title="Réinitialiser" keyEquivalent="r" id="8x3-Nb-IrD">
                                             <connections>
                                                 <action selector="softReset:" target="Ady-hI-5gd" id="tRD-G9-upd"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Hard Reset" keyEquivalent="R" id="hnA-l0-zks">
+                                        <menuItem title="Redémarrer" keyEquivalent="R" id="hnA-l0-zks">
                                             <connections>
                                                 <action selector="hardReset:" target="Ady-hI-5gd" id="Cxs-nj-Fqn"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="m54-Is-iLE"/>
-                                        <menuItem title="Close" keyEquivalent="w" id="DVo-aG-piG">
+                                        <menuItem title="Fermer" keyEquivalent="w" id="DVo-aG-piG">
                                             <connections>
                                                 <action selector="performClose:" target="Ady-hI-5gd" id="HmO-Ls-i7Q"/>
                                             </connections>
@@ -98,11 +98,11 @@
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="Tools" id="oOK-sn-PEt">
+                            <menuItem title="Outils" id="oOK-sn-PEt">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Tools" id="1ma-uf-pZk">
+                                <menu key="submenu" title="Outils" id="1ma-uf-pZk">
                                     <items>
-                                        <menuItem title="Cheat" keyEquivalent="C" id="L9M-4f-pjr">
+                                        <menuItem title="Tricher" keyEquivalent="C" id="L9M-4f-pjr">
                                             <connections>
                                                 <segue destination="AlE-Oa-6lb" kind="show" id="0e3-ME-9YL"/>
                                             </connections>
@@ -110,11 +110,11 @@
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="Window" id="aUF-d1-5bR">
+                            <menuItem title="Fenêtre" id="aUF-d1-5bR">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Window" systemMenu="window" id="Td7-aD-5lo">
+                                <menu key="submenu" title="Fenêtre" systemMenu="window" id="Td7-aD-5lo">
                                     <items>
-                                        <menuItem title="Minimize" keyEquivalent="m" id="OY7-WF-poV">
+                                        <menuItem title="Réduire" keyEquivalent="m" id="OY7-WF-poV">
                                             <connections>
                                                 <action selector="performMiniaturize:" target="Ady-hI-5gd" id="VwT-WD-YPe"/>
                                             </connections>
@@ -126,7 +126,7 @@
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="eu3-7i-yIM"/>
-                                        <menuItem title="Bring All to Front" id="LE2-aR-0XJ">
+                                        <menuItem title="Tout ramener au premier plan" id="LE2-aR-0XJ">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="arrangeInFront:" target="Ady-hI-5gd" id="DRN-fu-gQh"/>
@@ -167,7 +167,7 @@
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Hrs-30-sQX">
                                 <rect key="frame" x="18" y="102" width="124" height="52"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Size and format:" id="4ar-Ha-9vE">
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Taille et format:" id="4ar-Ha-9vE">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -176,7 +176,7 @@
                             <button fixedFrame="YES" tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="058-U2-scV">
                                 <rect key="frame" x="145" y="130" width="265" height="25"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="radio" title="1 byte [0..255]" bezelStyle="regularSquare" imagePosition="left" state="on" tag="1" inset="2" id="Rxd-eN-Pvj">
+                                <buttonCell key="cell" type="radio" title="1 octet [0..255]" bezelStyle="regularSquare" imagePosition="left" state="on" tag="1" inset="2" id="Rxd-eN-Pvj">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -187,7 +187,7 @@
                             <button fixedFrame="YES" tag="2" translatesAutoresizingMaskIntoConstraints="NO" id="lai-MP-glA">
                                 <rect key="frame" x="145" y="105" width="265" height="25"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="radio" title="2 bytes [0..65 535]" bezelStyle="regularSquare" imagePosition="left" inset="2" id="jxC-sw-rT0">
+                                <buttonCell key="cell" type="radio" title="2 octets [0..65 535]" bezelStyle="regularSquare" imagePosition="left" inset="2" id="jxC-sw-rT0">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -198,7 +198,7 @@
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bub-ak-ZH8">
                                 <rect key="frame" x="18" y="80" width="124" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Value:" id="G5y-4n-YsW">
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Valeur:" id="G5y-4n-YsW">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -207,7 +207,7 @@
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="UQS-oQ-4KL">
                                 <rect key="frame" x="372" y="40" width="104" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="View" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="eQ5-q2-GhC">
+                                <buttonCell key="cell" type="push" title="Afficher" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="eQ5-q2-GhC">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                     <string key="keyEquivalent" base64-UTF8="YES">
@@ -231,7 +231,7 @@ Gw
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RRo-bQ-3WD">
                                 <rect key="frame" x="372" y="13" width="104" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Search" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="9Y3-0F-u8S">
+                                <buttonCell key="cell" type="push" title="Chercher" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="9Y3-0F-u8S">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -242,7 +242,7 @@ Gw
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="LxC-dn-Oab">
                                 <rect key="frame" x="260" y="13" width="112" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Restart" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="iE8-RC-hB3">
+                                <buttonCell key="cell" type="push" title="Redémarrer" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="iE8-RC-hB3">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                     <string key="keyEquivalent" base64-UTF8="YES">
@@ -256,7 +256,7 @@ Gw
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jA4-w0-ku5">
                                 <rect key="frame" x="156" y="13" width="104" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Chn-yH-LFV">
+                                <buttonCell key="cell" type="push" title="Annuler" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Chn-yH-LFV">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                     <string key="keyEquivalent" base64-UTF8="YES">
@@ -278,10 +278,10 @@ Gw
             </objects>
             <point key="canvasLocation" x="1052" y="-127"/>
         </scene>
-        <!--Cheat results-->
+        <!--Résultats-->
         <scene sceneID="oIi-ls-uFM">
             <objects>
-                <viewController title="Cheat results" showSeguePresentationStyle="single" id="5mc-VV-BSx" customClass="AddressesViewController" sceneMemberID="viewController">
+                <viewController title="Résultats" showSeguePresentationStyle="single" id="5mc-VV-BSx" customClass="AddressesViewController" sceneMemberID="viewController">
                     <view key="view" id="dGl-EK-K03">
                         <rect key="frame" x="0.0" y="0.0" width="422" height="272"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -293,15 +293,15 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="fxl-7M-LfP" viewBased="YES" id="KgQ-eK-Jgg">
-                                            <rect key="frame" x="0.0" y="0.0" width="420" height="248"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="424" height="248"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             <tableViewGridLines key="gridStyleMask" vertical="YES" horizontal="YES"/>
                                             <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                             <tableColumns>
-                                                <tableColumn width="189" minWidth="40" maxWidth="1000" id="RpI-CL-Q0L">
-                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Address">
+                                                <tableColumn width="191" minWidth="40" maxWidth="1000" id="RpI-CL-Q0L">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Addresse">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
@@ -314,11 +314,11 @@ Gw
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
                                                         <tableCellView id="5DL-gy-0TS">
-                                                            <rect key="frame" x="1" y="1" width="189" height="17"/>
+                                                            <rect key="frame" x="1" y="1" width="191" height="17"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kTT-LL-5Np">
-                                                                    <rect key="frame" x="0.0" y="0.0" width="189" height="17"/>
+                                                                    <rect key="frame" x="0.0" y="0.0" width="191" height="17"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" id="qaR-m1-9Ry">
                                                                         <customFormatter key="formatter" id="gEm-L9-5ue" customClass="HexFormatter"/>
@@ -337,8 +337,8 @@ Gw
                                                         </tableCellView>
                                                     </prototypeCellViews>
                                                 </tableColumn>
-                                                <tableColumn identifier="" width="225" minWidth="10" maxWidth="3.4028234663852886e+38" id="fIT-Li-2KJ">
-                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Value">
+                                                <tableColumn identifier="" width="227" minWidth="10" maxWidth="3.4028234663852886e+38" id="fIT-Li-2KJ">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Valeur">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
@@ -351,11 +351,11 @@ Gw
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
                                                         <tableCellView id="T9R-sl-ugu">
-                                                            <rect key="frame" x="193" y="1" width="225" height="17"/>
+                                                            <rect key="frame" x="195" y="1" width="227" height="17"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4dV-xY-Hpx">
-                                                                    <rect key="frame" x="0.0" y="0.0" width="225" height="17"/>
+                                                                    <rect key="frame" x="0.0" y="0.0" width="227" height="17"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" id="J2j-AA-kKf">
                                                                         <font key="font" metaFont="system"/>
@@ -380,8 +380,8 @@ Gw
                                         </tableView>
                                     </subviews>
                                 </clipView>
-                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="u9L-w2-5p3">
-                                    <rect key="frame" x="1" y="147" width="264" height="16"/>
+                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="u9L-w2-5p3">
+                                    <rect key="frame" x="1" y="255" width="420" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="d8i-pg-jNQ">
@@ -389,7 +389,7 @@ Gw
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <tableHeaderView key="headerView" id="fxl-7M-LfP">
-                                    <rect key="frame" x="0.0" y="0.0" width="420" height="23"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="424" height="23"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableHeaderView>
                             </scrollView>
@@ -450,41 +450,41 @@ Gw
         <scene sceneID="6Ty-gq-XsE">
             <objects>
                 <windowController showSeguePresentationStyle="single" id="AlE-Oa-6lb" customClass="CheatWindowController" sceneMemberID="viewController">
-                    <window key="window" title="Cheat" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="aCI-T6-Pgg">
+                    <window key="window" title="Tricher" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="aCI-T6-Pgg">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="163" y="199" width="390" height="222"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
                         <toolbar key="toolbar" implicitIdentifier="D2C0A2BF-3E3C-4529-AA41-3C01AEACF911" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="small" id="Cad-tC-YN9">
                             <allowedToolbarItems>
-                                <toolbarItem implicitItemIdentifier="CC8CDB15-0545-4556-AB3C-5A439993230A" label="Add" paletteLabel="Add" tag="-1" image="Add" id="HU0-dH-kQz">
+                                <toolbarItem implicitItemIdentifier="CC8CDB15-0545-4556-AB3C-5A439993230A" label="Ajouter" paletteLabel="Ajouter" tag="-1" image="Add" id="HU0-dH-kQz">
                                     <connections>
                                         <segue destination="blf-0E-xPU" kind="sheet" identifier="AddCheatSegue" id="150-e1-Emu"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="D46D0A1F-9F21-483E-859F-2A274B209B19" label="Edit" paletteLabel="Edit" tag="-1" image="Edit" id="gco-BA-zT7">
+                                <toolbarItem implicitItemIdentifier="D46D0A1F-9F21-483E-859F-2A274B209B19" label="Editer" paletteLabel="Editer" tag="-1" image="Edit" id="gco-BA-zT7">
                                     <connections>
                                         <action selector="EditCheat:" target="AlE-Oa-6lb" id="l9X-F4-QcT"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="A3D71600-FEB5-4098-8F5A-5068941D5680" label="Remove" paletteLabel="Remove" tag="-1" image="Remove" id="Vvn-mt-sA2">
+                                <toolbarItem implicitItemIdentifier="A3D71600-FEB5-4098-8F5A-5068941D5680" label="Supprimer" paletteLabel="Supprimer" tag="-1" image="Remove" id="Vvn-mt-sA2">
                                     <connections>
                                         <action selector="RemoveCheat:" target="AlE-Oa-6lb" id="Z1k-wO-PdO"/>
                                     </connections>
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="74U-Sb-QL0"/>
-                                <toolbarItem implicitItemIdentifier="7A5B770B-375A-421C-BE32-BF368870DD7B" label="Load" paletteLabel="Load" tag="-1" image="Load" id="E0D-lf-FrW">
+                                <toolbarItem implicitItemIdentifier="7A5B770B-375A-421C-BE32-BF368870DD7B" label="Charger" paletteLabel="Charger" tag="-1" image="Load" id="E0D-lf-FrW">
                                     <connections>
                                         <action selector="LoadCheats:" target="AlE-Oa-6lb" id="sdl-ty-FjT"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="331F0A3A-C40C-44F2-933D-0F5D499993B1" label="Save" paletteLabel="Save" tag="-1" image="Save" id="Rl0-oo-Txd">
+                                <toolbarItem implicitItemIdentifier="331F0A3A-C40C-44F2-933D-0F5D499993B1" label="Enregistrer" paletteLabel="Enregistrer" tag="-1" image="Save" id="Rl0-oo-Txd">
                                     <connections>
                                         <action selector="SaveCheats:" target="AlE-Oa-6lb" id="Y5U-Ck-XYX"/>
                                     </connections>
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="F6G-nr-9bT"/>
-                                <toolbarItem implicitItemIdentifier="6E0981FF-8EB8-41FD-8B3C-0F1BC56396F0" label="Search" paletteLabel="Search" tag="-1" image="Search" id="VG5-Sk-CCD">
+                                <toolbarItem implicitItemIdentifier="6E0981FF-8EB8-41FD-8B3C-0F1BC56396F0" label="Chercher" paletteLabel="Chercher" tag="-1" image="Search" id="VG5-Sk-CCD">
                                     <connections>
                                         <segue destination="27h-de-uQK" kind="sheet" id="4jz-dw-Pvs"/>
                                     </connections>
@@ -533,7 +533,7 @@ Gw
                                             <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                             <tableColumns>
                                                 <tableColumn width="116" minWidth="40" maxWidth="1000" id="rPx-nC-EjN">
-                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Address">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Adresse">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
@@ -574,7 +574,7 @@ Gw
                                                     </prototypeCellViews>
                                                 </tableColumn>
                                                 <tableColumn width="114" minWidth="40" maxWidth="1000" id="Qpo-yq-ILe">
-                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Value">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Valeur">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
@@ -592,7 +592,7 @@ Gw
                                                             <subviews>
                                                                 <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6K8-4k-gEj">
                                                                     <rect key="frame" x="0.0" y="0.0" width="114" height="17"/>
-                                                                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="adi-Wc-ShA">
+                                                                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" id="adi-Wc-ShA">
                                                                         <font key="font" metaFont="system"/>
                                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -632,7 +632,7 @@ Gw
                                                             <subviews>
                                                                 <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="q9L-Xy-1ix">
                                                                     <rect key="frame" x="0.0" y="0.0" width="228" height="17"/>
-                                                                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="cJj-WG-oY4">
+                                                                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" id="cJj-WG-oY4">
                                                                         <font key="font" metaFont="system"/>
                                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -749,7 +749,7 @@ Gw
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="scK-OF-nS9">
                                 <rect key="frame" x="18" y="170" width="124" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Address:" id="keB-t3-2D7">
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Adresse:" id="keB-t3-2D7">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -758,7 +758,7 @@ Gw
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ma0-MY-ulf">
                                 <rect key="frame" x="30" y="103" width="114" height="52"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Size and format:" id="D0W-B4-EwR">
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Taille et format:" id="D0W-B4-EwR">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -767,7 +767,7 @@ Gw
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="V7k-Lx-n2y">
                                 <rect key="frame" x="18" y="78" width="124" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Value:" id="WE9-dI-QKj">
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Valeur:" id="WE9-dI-QKj">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
@@ -783,9 +783,9 @@ Gw
                                 </textFieldCell>
                             </textField>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tdT-PV-WWM">
-                                <rect key="frame" x="335" y="13" width="81" height="32"/>
+                                <rect key="frame" x="334" y="13" width="84" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Add" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Jsi-L2-Nwd">
+                                <buttonCell key="cell" type="push" title="Ajouter" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Jsi-L2-Nwd">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -793,7 +793,7 @@ Gw
                             <button fixedFrame="YES" tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="zUl-Lb-XPL">
                                 <rect key="frame" x="147" y="131" width="265" height="25"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="radio" title="1 byte [0..255]" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="Ig6-uN-3sD">
+                                <buttonCell key="cell" type="radio" title="1 octet [0..255]" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="Ig6-uN-3sD">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -807,9 +807,9 @@ Gw
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="LjK-Xr-xAC">
-                                <rect key="frame" x="254" y="13" width="81" height="32"/>
+                                <rect key="frame" x="251" y="13" width="87" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="S8h-IX-hry">
+                                <buttonCell key="cell" type="push" title="Annuler" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="S8h-IX-hry">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                     <string key="keyEquivalent" base64-UTF8="YES">
@@ -823,7 +823,7 @@ Gw
                             <button fixedFrame="YES" tag="2" translatesAutoresizingMaskIntoConstraints="NO" id="paA-ig-QU3">
                                 <rect key="frame" x="147" y="105" width="265" height="25"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="radio" title="2 bytes [0..65 535]" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Eal-uy-0Op">
+                                <buttonCell key="cell" type="radio" title="2 octets [0..65 535]" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Eal-uy-0Op">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -856,9 +856,9 @@ Gw
         <image name="Load" width="48" height="48"/>
         <image name="Remove" width="48" height="48"/>
         <image name="Save" width="48" height="48"/>
-        <image name="Search" width="128" height="128"/>
+        <image name="Search" width="48" height="48"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="150-e1-Emu"/>
+        <segue reference="imI-U2-vZe"/>
     </inferredMetricsTieBreakers>
 </document>

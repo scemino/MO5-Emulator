@@ -12,7 +12,6 @@ namespace MO5Emulator
         AppDelegate AppDelegate => (AppDelegate)NSApplication.SharedApplication.Delegate;
         private Memory Memory => AppDelegate.Machine.Memory;
 
-        private HashSet<int> _adresses = new HashSet<int>();
 		private NSMutableArray _cheats = new NSMutableArray();
 
 		public CheatModel SelectedCheat { get; private set; }
@@ -28,7 +27,7 @@ namespace MO5Emulator
         {
 			AppDelegate.Machine.Stepping += OnStepping;
 			base.ViewWillAppear();
-        }
+		}
 
         public override void ViewWillDisappear()
         {
@@ -45,15 +44,17 @@ namespace MO5Emulator
 		{
 			base.PrepareForSegue(segue, sender);
 
-			// Take action based on type
-			switch (segue.Identifier)
-			{
-				case "EditorSegue":
-                    var editor = segue.DestinationController as AddCheatViewController;
-					editor.Presentor = this;
-					editor.Cheat = SelectedCheat;
-					break;
-			}
+            // Take action based on type
+            switch (segue.Identifier)
+            {
+                case "EditorSegue":
+                    {
+                        var editor = segue.DestinationController as AddCheatViewController;
+                        editor.Presentor = this;
+                        editor.Cheat = SelectedCheat;
+                    }
+                    break;
+            }
 		}
 
 		public void DeleteCheat(NSWindow window)
@@ -169,64 +170,6 @@ namespace MO5Emulator
 			_cheats = array;
 			DidChangeValue("cheatModelArray");
 		}
-
-		// TODO
-		//partial void FindValue(NSButton sender)
-		//{
-		//    var mem = Memory;
-		//    var value = ValueTextField.IntValue;
-		//    Func<int, List<int>> find;
-		//    Func<int, int> read;
-		//    if (RadioFormat.State == NSCellStateValue.On)
-		//    {
-		//        find = mem.Find16;
-		//        read = mem.Read16;
-		//    }
-		//    else
-		//    {
-		//        find = mem.Find8;
-		//        read = mem.Read;
-		//    }
-		//    if (_adresses.Count == 0)
-		//    {
-		//        var newValues = find(value);
-		//        foreach (var addr in newValues)
-		//        {
-		//            _adresses.Add(addr);
-		//        }
-		//    }
-		//    else
-		//    {
-		//        foreach (var addr in _adresses.ToList())
-		//        {
-		//            if (read(addr) != value)
-		//            {
-		//                _adresses.Remove(addr);
-		//            }
-		//        }
-		//    }
-		//    if (_adresses.Count == 1)
-		//    {
-		//        AdressTextField.IntValue = _adresses.First();
-		//    }
-		//    StatusTextField.StringValue = string.Format("{0} occurrences found ({1})", _adresses.Count, _adresses.FirstOrDefault());
-		//}
-
-		// TODO
-		//partial void WriteValue(NSButton sender)
-		//{
-		//    var mem = Memory;
-		//    var address = AdressTextField.IntValue;
-		//    var value = ValueTextField.IntValue;
-		//    if (RadioFormat.State == NSCellStateValue.On)
-		//    {
-		//        mem.Set16(address, value);
-		//    }
-		//    else
-		//    {
-		//        mem.Set(address, value);
-		//    }
-		//}
 
 		private IEnumerable<CheatModel> GetCheats()
 		{

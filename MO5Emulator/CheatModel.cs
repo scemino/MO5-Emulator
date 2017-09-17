@@ -9,7 +9,7 @@ namespace MO5Emulator
         private string _details;
 		private int _address;
 		private int _value;
-        private int _size;
+        private int _size = 1;
         private NSMutableArray _cheats = new NSMutableArray();
 
 		[Export("cheatModelArray")]

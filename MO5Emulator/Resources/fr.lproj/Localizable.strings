@@ -14,3 +14,5 @@
 
 "Are you sure you want to delete cheat `{0}` from the table?" = "Êtes-vous sûr de vouloir supprimer la ligne à l'adresse `{0}` ?";
 
+"{0} results found ({1:X})" = "{0} résultats trouvés ({1:X})";
+

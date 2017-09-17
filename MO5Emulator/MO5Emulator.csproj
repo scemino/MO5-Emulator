@@ -79,6 +79,9 @@
     <ImageAsset Include="Assets.xcassets\Edit.imageset\Contents.json" />
     <ImageAsset Include="Assets.xcassets\Edit.imageset\ic_mode_edit.png" />
     <ImageAsset Include="Assets.xcassets\Edit.imageset\ic_mode_edit_2x.png" />
+    <ImageAsset Include="Assets.xcassets\Search.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Search.imageset\ic_magnify.png" />
+    <ImageAsset Include="Assets.xcassets\Search.imageset\ic_magnify_2x.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -91,6 +94,7 @@
     <Folder Include="Assets.xcassets\Add.imageset\" />
     <Folder Include="Assets.xcassets\Remove.imageset\" />
     <Folder Include="Assets.xcassets\Edit.imageset\" />
+    <Folder Include="Assets.xcassets\Search.imageset\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -133,9 +137,20 @@
     <Compile Include="HexFormatter.designer.cs">
       <DependentUpon>HexFormatter.cs</DependentUpon>
     </Compile>
+    <Compile Include="IsOneByteSizeValueTransformer.cs" />
+    <Compile Include="IsTwoBytesSizeValueTransformer.cs" />
+    <Compile Include="AddressesViewController.cs" />
+    <Compile Include="AddressesViewController.designer.cs">
+      <DependentUpon>AddressesViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SearchCheatViewController.cs" />
+    <Compile Include="SearchCheatViewController.designer.cs">
+      <DependentUpon>SearchCheatViewController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />
+    <InterfaceDefinition Include="Resources\fr.lproj\Main.storyboard" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\nMO5\nMO5.csproj">
@@ -147,7 +162,6 @@
     <BundleResource Include="Resources\bios\cd90-640.rom" />
     <BundleResource Include="Resources\bios\mo5.rom" />
     <BundleResource Include="Resources\.DS_Store" />
-    <BundleResource Include="Resources\fr.lproj\Main.strings" />
     <BundleResource Include="Resources\fr.lproj\Localizable.strings" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
