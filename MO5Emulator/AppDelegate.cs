@@ -10,15 +10,15 @@ namespace MO5Emulator
     [Register("AppDelegate")]
     public partial class AppDelegate : NSApplicationDelegate
     {
-        private Sound _sound;
+        private ISound _sound;
         private Machine _machine;
 
 		public Machine Machine => _machine;
-		public Sound Sound => _sound;
+		public ISound Sound => _sound;
 
         public AppDelegate()
         {
-			_sound = new Sound();
+			_sound = new DummySound();
 			_machine = new Machine(_sound);
         }
 

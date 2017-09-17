@@ -18,7 +18,7 @@ namespace MO5Emulator
 
         AppDelegate AppDelegate => (AppDelegate) NSApplication.SharedApplication.Delegate;
 		public Machine Machine => AppDelegate.Machine;
-		public Sound Sound => AppDelegate.Sound;
+		public ISound Sound => AppDelegate.Sound;
 
         public GameView(CGRect frame)
         : base(frame)
@@ -54,7 +54,7 @@ namespace MO5Emulator
         protected override void OnUpdateFrame(OpenTK.FrameEventArgs e)
         {
             Machine.Step();
-            Sound.UpdateQueue();
+            (Sound as Sound)?.UpdateQueue();
             base.OnUpdateFrame(e);
         }
 

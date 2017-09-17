@@ -147,6 +147,7 @@
     <Compile Include="SearchCheatViewController.designer.cs">
       <DependentUpon>SearchCheatViewController.cs</DependentUpon>
     </Compile>
+    <Compile Include="Audio\DummySound.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />
