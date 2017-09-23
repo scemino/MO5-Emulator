@@ -102,6 +102,18 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Tools" id="1ma-uf-pZk">
                                     <items>
+                                        <menuItem title="Save State" tag="1" keyEquivalent="1" id="h3C-SF-bbY" userLabel="Save State">
+                                            <connections>
+                                                <action selector="saveState:" target="Ady-hI-5gd" id="JO4-Is-Nlu"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Restore State" tag="2" keyEquivalent="1" id="bAB-eM-Ndb">
+                                            <modifierMask key="keyEquivalentModifierMask" option="YES"/>
+                                            <connections>
+                                                <action selector="restoreState:" target="Ady-hI-5gd" id="i6z-z5-N8j"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="9Dm-kR-XTH"/>
                                         <menuItem title="Cheat" keyEquivalent="C" id="L9M-4f-pjr">
                                             <connections>
                                                 <segue destination="AlE-Oa-6lb" kind="show" id="0e3-ME-9YL"/>
@@ -856,7 +868,7 @@ Gw
         <image name="Load" width="48" height="48"/>
         <image name="Remove" width="48" height="48"/>
         <image name="Save" width="48" height="48"/>
-        <image name="Search" width="128" height="128"/>
+        <image name="Search" width="48" height="48"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="150-e1-Emu"/>

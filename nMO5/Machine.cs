@@ -1,12 +1,13 @@
 ﻿using System;
+using System.IO;
 
 namespace nMO5
 {
     public class Machine
     {
         private readonly Memory _mem;
-		private readonly M6809 _micro;
-		private readonly Keyboard _keyboard;
+        private readonly M6809 _micro;
+        private readonly Keyboard _keyboard;
         private bool _irq;
 
         public Memory Memory => _mem;
@@ -14,11 +15,23 @@ namespace nMO5
 
         public event EventHandler Stepping;
 
-		public Machine(ISound sound)
+        public Machine(ISound sound)
         {
             _mem = new Memory();
             _micro = new M6809(_mem, sound);
             _keyboard = new Keyboard(_mem);
+        }
+
+        public void SaveState(Stream stream)
+        {
+            _micro.SaveState(stream);
+            _mem.SaveState(stream);
+        }
+
+        public void RestoreState(Stream stream)
+        {
+            _micro.RestoreState(stream);
+            _mem.RestoreState(stream);
         }
 
         public void Step()
@@ -32,16 +45,16 @@ namespace nMO5
             _mem.SetK7File(k7);
         }
 
-		public void OpenMemo(string path)
-		{
-			_mem.OpenMemo(path);
+        public void OpenMemo(string path)
+        {
+            _mem.OpenMemo(path);
             _micro.Reset();
-		}
+        }
 
-		public void OpenDisk(string path)
-		{
+        public void OpenDisk(string path)
+        {
             _mem.OpenDisk(path);
-		}
+        }
 
         // soft reset method ("reinit prog" button on original MO5) 
         public void ResetSoft()
@@ -52,11 +65,12 @@ namespace nMO5
         // hard reset (switch off and on)
         public void ResetHard()
         {
-            for (var i = 0x2000; i < 0x3000; i++) {
+            for (var i = 0x2000; i < 0x3000; i++)
+            {
                 _mem.Set(i, 0);
             }
             _mem.CloseMemo();
-			_micro.Reset();
+            _micro.Reset();
         }
 
         // the emulator main loop

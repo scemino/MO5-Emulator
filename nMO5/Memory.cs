@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace nMO5
@@ -63,14 +62,16 @@ namespace nMO5
         public int ShowLed { get; set; }
         public int Led { get; private set; }
 
-		public int BorderColor
-		{
-			get
-			{
-				var value = Read(0xA7C0);
-				return (value >> 1) & 0x0F;
-			}
-		}
+        public string K7Path => (_k7Fis as FileStream)?.Name;
+
+        public int BorderColor
+        {
+            get
+            {
+                var value = Read(0xA7C0);
+                return (value >> 1) & 0x0F;
+            }
+        }
 
         public Memory()
         {
@@ -87,6 +88,60 @@ namespace nMO5
             _dirty = new bool[200];
 
             Reset();
+        }
+
+        public void SaveState(Stream stream)
+        {
+            var bw = new BinaryWriter(stream);
+            for (int i = 0; i < 18; i++)
+            {
+                for (int j = 0; j < 0x1000; j++)
+                {
+                    bw.Write(_mem[i][j]);
+                }
+            }
+            bw.Write(_mapper[0] != 0);
+            bw.Write(Ora);
+            bw.Write(Orb);
+            bw.Write(Ddra);
+            bw.Write(Ddrb);
+            bw.Write(Cra);
+            bw.Write(Crb);
+            bw.Write(SoundMem);
+        }
+
+        public void RestoreState(Stream stream)
+        {
+            var br = new BinaryReader(stream);
+            for (int i = 0; i < 18; i++)
+            {
+                for (int j = 0; j < 0x1000; j++)
+                {
+                    _mem[i][j] = br.ReadInt32();
+                }
+            }
+            var isMemSwap = br.ReadBoolean();
+            if (isMemSwap)
+            {
+                _mapper[0] = 2;
+                _mapper[1] = 3;
+            }
+            else
+            {
+                _mapper[0] = 0;
+                _mapper[1] = 1;
+            }
+            Ora = br.ReadInt32();
+            Orb = br.ReadInt32();
+            Ddra = br.ReadInt32();
+            Ddrb = br.ReadInt32();
+            Cra = br.ReadInt32();
+            Crb = br.ReadInt32();
+            SoundMem = br.ReadInt32();
+            for (int i = 0; i < _dirty.Length; i++)
+            {
+                _dirty[i] = true;
+            }
         }
 
         public void OpenDisk(string path)
@@ -180,7 +235,7 @@ namespace nMO5
             return _mem[page + 2][address & 0xFFF];
         }
 
-		public bool IsDirty(int line)
+        public bool IsDirty(int line)
         {
             var ret = _dirty[line];
             _dirty[line] = false;

@@ -1,4 +1,5 @@
-﻿﻿using System.Text;
+﻿using System.IO;
+using System.Text;
 using static nMO5.Util;
 
 namespace nMO5
@@ -22,15 +23,15 @@ namespace nMO5
         /// </summary>
         public int Pc;
 
-		// 8bits registers
-		/// <summary>
-		/// Accumulator Register.
-		/// </summary>
-		public int A;
-		/// <summary>
-		/// Accumulator Register.
-		/// </summary>
-		public int B;
+        // 8bits registers
+        /// <summary>
+        /// Accumulator Register.
+        /// </summary>
+        public int A;
+        /// <summary>
+        /// Accumulator Register.
+        /// </summary>
+        public int B;
         /// <summary>
         /// Direct page register.
         /// </summary>
@@ -40,26 +41,26 @@ namespace nMO5
         /// </summary>
         public int Cc;
 
-		// 16bits registers
-		/// <summary>
-		/// Index register.
-		/// </summary>
-		public int X;
-		/// <summary>
-		/// Index register.
-		/// </summary>
-		public int Y;
-		/// <summary>
-		/// Stack pointer register.
-		/// </summary>
-		public int U;
-		/// <summary>
-		/// Stack pointer register.
-		/// </summary>
-		public int S;
-		/// <summary>
-		/// Accumulator register: D=A+B.
-		/// </summary>
+        // 16bits registers
+        /// <summary>
+        /// Index register.
+        /// </summary>
+        public int X;
+        /// <summary>
+        /// Index register.
+        /// </summary>
+        public int Y;
+        /// <summary>
+        /// Stack pointer register.
+        /// </summary>
+        public int U;
+        /// <summary>
+        /// Stack pointer register.
+        /// </summary>
+        public int S;
+        /// <summary>
+        /// Accumulator register: D=A+B.
+        /// </summary>
         public int D
         {
             get { return (A << 8) | (B & 0xFF); }
@@ -89,6 +90,38 @@ namespace nMO5
             _soundAddr = 0;
 
             Reset();
+        }
+
+        public void SaveState(Stream stream)
+        {
+            Getcc();
+            var writer = new BinaryWriter(stream);
+            writer.Write(Pc);
+            writer.Write(A);
+            writer.Write(B);
+            writer.Write(Dp);
+            writer.Write(Cc);
+            writer.Write(X);
+            writer.Write(Y);
+            writer.Write(U);
+            writer.Write(S);
+            writer.Write(_clock);
+        }
+
+        public void RestoreState(Stream stream)
+        {
+            var br = new BinaryReader(stream);
+            Pc = br.ReadInt32();
+            A = br.ReadInt32();
+            B = br.ReadInt32();
+            Dp = br.ReadInt32();
+            Cc = br.ReadInt32();
+            X = br.ReadInt32();
+            Y = br.ReadInt32();
+            U = br.ReadInt32();
+            S = br.ReadInt32();
+            _clock = br.ReadInt32();
+            Setcc(Cc);
         }
 
         public void Reset()
@@ -623,7 +656,7 @@ namespace nMO5
             return 0;
         }
 
-// cc register recalculate from separate bits
+        // cc register recalculate from separate bits
         private int Getcc()
         {
             if ((_res & 0xff) == 0)
@@ -643,7 +676,7 @@ namespace nMO5
             return Cc;
         }
 
-// calculate CC fast bits from CC register
+        // calculate CC fast bits from CC register
         private void Setcc(int i)
         {
             _m1 = _m2 = 0;
@@ -660,7 +693,7 @@ namespace nMO5
             return Cc;
         }
 
-// LDx
+        // LDx
         private int Ld8(int m, int c)
         {
             _sign = _mem.Read(m);
@@ -681,7 +714,7 @@ namespace nMO5
             return r;
         }
 
-// STx
+        // STx
         private void St8(int r, int adr, int c)
         {
             _mem.Write(adr, r);
@@ -701,7 +734,7 @@ namespace nMO5
             _clock += c;
         }
 
-// LEA
+        // LEA
         private int Lea()
         {
             int r = Indexe();
@@ -710,7 +743,7 @@ namespace nMO5
             return r;
         }
 
-// CLR
+        // CLR
         private void Clr(int m, int c)
         {
             _mem.Write(m, 0);
@@ -719,7 +752,7 @@ namespace nMO5
             _clock += c;
         }
 
-// EXG
+        // EXG
         private void Exg()
         {
             int r1;
@@ -1294,7 +1327,7 @@ namespace nMO5
             _clock += c;
         }
 
-// DEC
+        // DEC
         private void Deca()
         {
             _m1 = A;
@@ -1359,7 +1392,7 @@ namespace nMO5
             _clock += c;
         }
 
-// TST
+        // TST
         private void TstAi()
         {
             _m1 = _ovfl;
@@ -1412,7 +1445,7 @@ namespace nMO5
         {
             int val;
             val = _mem.Read(adr);
-//	getcc();
+            //	getcc();
             Cc &= val;
             Setcc(Cc);
             _clock += c;
@@ -1969,7 +2002,7 @@ namespace nMO5
             _clock += 5;
         }
 
-/* Branchements conditionnels */
+        /* Branchements conditionnels */
 
         private void Bcc()
         {
@@ -2437,10 +2470,10 @@ namespace nMO5
         private void Fetch()
         {
             int opcode = _mem.Read(Pc);
-			Pc++;
+            Pc++;
 
             // 	Sound emulation process
-            SoundBuffer[_soundAddr] = (byte) _mem.SoundMem;
+            SoundBuffer[_soundAddr] = (byte)_mem.SoundMem;
             _soundAddr = (_soundAddr + 1) % SoundSize;
             if (_soundAddr == 0)
                 _play.PlaySound(SoundBuffer);
@@ -2535,7 +2568,7 @@ namespace nMO5
                     St8(A, Indexe(), 4);
                     break;
 
-// STB
+                // STB
                 case 0xD7:
                     St8(B, Direc(), 4);
                     break;
@@ -2546,7 +2579,7 @@ namespace nMO5
                     St8(B, Indexe(), 4);
                     break;
 
-// STD
+                // STD
                 case 0xDD:
                     St16(D, Direc(), 5);
                     break;
@@ -2557,7 +2590,7 @@ namespace nMO5
                     St16(D, Indexe(), 6);
                     break;
 
-// STU
+                // STU
                 case 0xDF:
                     St16(U, Direc(), 5);
                     break;
@@ -2568,7 +2601,7 @@ namespace nMO5
                     St16(U, Indexe(), 5);
                     break;
 
-// STX
+                // STX
                 case 0x9F:
                     St16(X, Direc(), 5);
                     break;
@@ -2579,38 +2612,38 @@ namespace nMO5
                     St16(X, Indexe(), 5);
                     break;
 
-// LEAS
+                // LEAS
                 case 0x32:
                     S = Indexe();
                     break;
-// LEAU
+                // LEAU
                 case 0x33:
                     U = Indexe();
                     break;
-// LEAX
+                // LEAX
                 case 0x30:
                     X = Lea();
                     break;
-// LEAY
+                // LEAY
                 case 0x31:
                     Y = Lea();
                     break;
 
-// CLRA
+                // CLRA
                 case 0x4F:
                     A = 0;
                     _m1 = _ovfl;
                     _sign = _res = 0;
                     _clock += 2;
                     break;
-// CLRB
+                // CLRB
                 case 0x5F:
                     B = 0;
                     _m1 = _ovfl;
                     _sign = _res = 0;
                     _clock += 2;
                     break;
-// CLR
+                // CLR
                 case 0x0F:
                     Clr(Direc(), 6);
                     break;
@@ -2621,17 +2654,17 @@ namespace nMO5
                     Clr(Indexe(), 6);
                     break;
 
-// EXG
+                // EXG
                 case 0x1E:
                     Exg();
                     break;
 
-// TFR
+                // TFR
                 case 0x1F:
                     Tfr();
                     break;
 
-// PSH/PUL
+                // PSH/PUL
                 case 0x34:
                     Pshs();
                     break;
@@ -2645,7 +2678,7 @@ namespace nMO5
                     Pulu();
                     break;
 
-// INC
+                // INC
                 case 0x4C:
                     Inca();
                     break;
@@ -2662,7 +2695,7 @@ namespace nMO5
                     Inc(Indexe(), 6);
                     break;
 
-// DEC
+                // DEC
                 case 0x4A:
                     Deca();
                     break;
@@ -2679,7 +2712,7 @@ namespace nMO5
                     Dec(Indexe(), 6);
                     break;
 
-// BIT
+                // BIT
                 case 0x85:
                     Bit(A, Immed8(), 2);
                     break;
@@ -2705,7 +2738,7 @@ namespace nMO5
                     Bit(B, Indexe(), 4);
                     break;
 
-// CMP
+                // CMP
                 case 0x81:
                     Cmp8(A, Immed8(), 2);
                     break;
@@ -2743,7 +2776,7 @@ namespace nMO5
                     Cmp16(X, Indexe(), 7);
                     break;
 
-// TST
+                // TST
                 case 0x4D:
                     TstAi();
                     break;
@@ -2760,7 +2793,7 @@ namespace nMO5
                     Tst(Indexe(), 6);
                     break;
 
-// AND	
+                // AND	
                 case 0x84:
                     Anda(Immed8(), 2);
                     break;
@@ -2789,7 +2822,7 @@ namespace nMO5
                     Andcc(Immed8(), 3);
                     break;
 
-// OR	
+                // OR	
                 case 0x8A:
                     Ora(Immed8(), 2);
                     break;
@@ -2818,7 +2851,7 @@ namespace nMO5
                     Orcc(Immed8(), 3);
                     break;
 
-// EOR	
+                // EOR	
                 case 0x88:
                     Eora(Immed8(), 2);
                     break;
@@ -2844,7 +2877,7 @@ namespace nMO5
                     Eorb(Indexe(), 4);
                     break;
 
-// COM
+                // COM
                 case 0x43:
                     Coma();
                     break;
@@ -2861,7 +2894,7 @@ namespace nMO5
                     Com(Indexe(), 6);
                     break;
 
-// NEG
+                // NEG
                 case 0x40:
                     Nega();
                     break;
@@ -2878,12 +2911,12 @@ namespace nMO5
                     Neg(Indexe(), 6);
                     break;
 
-// ABX
+                // ABX
                 case 0x3A:
                     Abx();
                     break;
 
-//ADD	
+                //ADD	
                 case 0x8B:
                     Adda(Immed8(), 2);
                     break;
@@ -2923,7 +2956,7 @@ namespace nMO5
                     Addd(Indexe(), 6);
                     break;
 
-// ADC
+                // ADC
                 case 0x89:
                     Adca(Immed8(), 2);
                     break;
@@ -2950,12 +2983,12 @@ namespace nMO5
                     Adcb(Indexe(), 4);
                     break;
 
-// MUL
+                // MUL
                 case 0x3D:
                     Mul();
                     break;
 
-// SBC
+                // SBC
                 case 0x82:
                     Sbca(Immed8(), 2);
                     break;
@@ -2982,7 +3015,7 @@ namespace nMO5
                     Sbcb(Indexe(), 4);
                     break;
 
-//SUB	
+                //SUB	
                 case 0x80:
                     Suba(Immed8(), 2);
                     break;
@@ -3022,12 +3055,12 @@ namespace nMO5
                     Subd(Indexe(), 6);
                     break;
 
-// SEX
+                // SEX
                 case 0x1D:
                     Sex();
                     break;
 
-// ASL
+                // ASL
                 case 0x48:
                     Asla();
                     break;
@@ -3044,7 +3077,7 @@ namespace nMO5
                     Asl(Indexe(), 6);
                     break;
 
-// ASR
+                // ASR
                 case 0x47:
                     Asra();
                     break;
@@ -3061,7 +3094,7 @@ namespace nMO5
                     Asr(Indexe(), 6);
                     break;
 
-// LSR
+                // LSR
                 case 0x44:
                     Lsra();
                     break;
@@ -3078,7 +3111,7 @@ namespace nMO5
                     Lsr(Indexe(), 6);
                     break;
 
-// ROL
+                // ROL
                 case 0x49:
                     Rola();
                     break;
@@ -3095,7 +3128,7 @@ namespace nMO5
                     Rol(Indexe(), 6);
                     break;
 
-// ROR
+                // ROR
                 case 0x46:
                     Rora();
                     break;
@@ -3112,7 +3145,7 @@ namespace nMO5
                     Ror(Indexe(), 6);
                     break;
 
-// BRA 
+                // BRA 
                 case 0x20:
                     Bra();
                     break;
@@ -3120,7 +3153,7 @@ namespace nMO5
                     Lbra();
                     break;
 
-// JMP 
+                // JMP 
                 case 0x0E:
                     JmPd();
                     break;
@@ -3131,7 +3164,7 @@ namespace nMO5
                     JmPx();
                     break;
 
-// BSR 
+                // BSR 
                 case 0x8D:
                     Bsr();
                     break;
@@ -3139,7 +3172,7 @@ namespace nMO5
                     Lbsr();
                     break;
 
-// JSR 
+                // JSR 
                 case 0x9D:
                     JsRd();
                     break;
@@ -3157,7 +3190,7 @@ namespace nMO5
                     Rts();
                     break;
 
-// Bxx
+                // Bxx
                 case 0x21:
                     Brn();
                     break;
@@ -3217,14 +3250,14 @@ namespace nMO5
                     Cwai();
                     break;
 
-// extended mode
+                // extended mode
                 case 0x10:
 
                     int opcode0X10 = _mem.Read(Pc++);
 
                     switch (opcode0X10)
                     {
-// LDS
+                        // LDS
                         case 0xCE:
                             S = Ld16(Immed16(), 3);
                             break;
@@ -3238,7 +3271,7 @@ namespace nMO5
                             S = Ld16(Indexe(), 5);
                             break;
 
-// LDY
+                        // LDY
                         case 0x8E:
                             Y = Ld16(Immed16(), 3);
                             break;
@@ -3252,7 +3285,7 @@ namespace nMO5
                             Y = Ld16(Indexe(), 5);
                             break;
 
-// STS
+                        // STS
                         case 0xDF:
                             St16(S, Direc(), 5);
                             break;
@@ -3263,7 +3296,7 @@ namespace nMO5
                             St16(S, Indexe(), 5);
                             break;
 
-// STY
+                        // STY
                         case 0x9F:
                             St16(Y, Direc(), 5);
                             break;
@@ -3274,7 +3307,7 @@ namespace nMO5
                             St16(Y, Indexe(), 5);
                             break;
 
-// CMP
+                        // CMP
                         case 0x83:
                             Cmp16(D, Immed16(), 5);
                             break;
@@ -3300,7 +3333,7 @@ namespace nMO5
                             Cmp16(Y, Indexe(), 7);
                             break;
 
-// Bxx
+                        // Bxx
                         case 0x21:
                             Lbrn();
                             break;
@@ -3383,41 +3416,41 @@ namespace nMO5
                         case 0xA3:
                             Cmp16(U, Indexe(), 7);
                             break;
-						// thanks to D.Coulom for the next instructions
-						// used by his emulator dcmoto
-						case 0xEC:
+                        // thanks to D.Coulom for the next instructions
+                        // used by his emulator dcmoto
+                        case 0xEC:
                             // lecture bit cassette
                             _mem.ReadBit(this);
                             _clock += 64;
-							break;
-						case 0xF1: // lecture octet cassette (pour 6809)
-						case 0xED: // lecture octet cassette (pour compatibilite 6309)
-							_mem.ReadByte(this);
+                            break;
+                        case 0xF1: // lecture octet cassette (pour 6809)
+                        case 0xED: // lecture octet cassette (pour compatibilite 6309)
+                            _mem.ReadByte(this);
                             _clock += 64;
-							break;
-						// TODO
-						// 0xF2: ecriture octet cassette(pour 6809)
-						// 0xEE: ecriture octet cassette(pour compatibilite 6309)
-						case 0xF3: // initialisation controleur disquette
+                            break;
+                        // TODO
+                        // 0xF2: ecriture octet cassette(pour 6809)
+                        // 0xEE: ecriture octet cassette(pour compatibilite 6309)
+                        case 0xF3: // initialisation controleur disquette
                             _clock += 64;
                             break;
                         // 0xF4: formatage disquette
-						case 0xF5:
+                        case 0xF5:
                             _mem.ReadSector();
                             _clock += 64;
-							break;
-						// TODO:
-						// 0xF8: lecture position souris
-						// 0xF9: lecture des boutons de la souris
-						// 0xFA: envoi d'un octet a l'imprimante
-						// 0xFC: lecture du clavier TO8
-						// 0xFD: ecriture vers clavier TO8
-						// 0xFE: emission commande nanoreseau
-						case 0xFF: // lecture coordonnees crayon optique
-							ReadPenXy();
-							_clock += 64;
-							break;
-						default:
+                            break;
+                        // TODO:
+                        // 0xF8: lecture position souris
+                        // 0xF9: lecture des boutons de la souris
+                        // 0xFA: envoi d'un octet a l'imprimante
+                        // 0xFC: lecture du clavier TO8
+                        // 0xFD: ecriture vers clavier TO8
+                        // 0xFE: emission commande nanoreseau
+                        case 0xFF: // lecture coordonnees crayon optique
+                            ReadPenXy();
+                            _clock += 64;
+                            break;
+                        default:
                             System.Console.Error.WriteLine("opcode 11 {0:X2} not implemented", opcode0X11);
                             System.Console.Error.WriteLine(PrintState());
                             break;
@@ -3431,15 +3464,15 @@ namespace nMO5
             }
         }
 
-		private void ReadPenXy()
-		{
-			if ((_mem.LightPenX < 0) || (_mem.LightPenX >= 320)) { Cc |= 1; Setcc(Cc); return; }
-			if ((_mem.LightPenY < 0) || (_mem.LightPenY >= 200)) { Cc |= 1; Setcc(Cc); return; }
-			_mem.Set16(S + 6, _mem.LightPenX);
-			_mem.Set16(S + 8, _mem.LightPenY);
-			Cc &= 0xFE;
-			Setcc(Cc);
-		}
+        private void ReadPenXy()
+        {
+            if ((_mem.LightPenX < 0) || (_mem.LightPenX >= 320)) { Cc |= 1; Setcc(Cc); return; }
+            if ((_mem.LightPenY < 0) || (_mem.LightPenY >= 200)) { Cc |= 1; Setcc(Cc); return; }
+            _mem.Set16(S + 6, _mem.LightPenX);
+            _mem.Set16(S + 8, _mem.LightPenY);
+            Cc &= 0xFE;
+            Setcc(Cc);
+        }
 
         // DISASSEMBLE/DEBUG PART
         private string PrintState()
@@ -3447,8 +3480,8 @@ namespace nMO5
             Cc = Getcc();
             var s = new StringBuilder();
             s.AppendFormat(" A=  {0:X2}  B=  {1:X2}", A, B).AppendLine();
-			s.AppendFormat(" X={0:X4}  Y={1:X4}", X, Y).AppendLine();
-			s.AppendFormat("PC={0:X4} DP={1:X4}", Pc, Dp).AppendLine();
+            s.AppendFormat(" X={0:X4}  Y={1:X4}", X, Y).AppendLine();
+            s.AppendFormat("PC={0:X4} DP={1:X4}", Pc, Dp).AppendLine();
             s.AppendFormat(" U={0:X4}  S={1:X4}", U, S).AppendLine();
             s.AppendFormat(" CC=  {0:X2}", Cc);
             return s.ToString();

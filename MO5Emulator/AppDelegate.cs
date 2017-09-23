@@ -80,5 +80,48 @@ namespace MO5Emulator
 		{
 			Machine.ResetHard();
 		}
+
+        [Export("saveState:")]
+        private void SaveState(NSObject sender)
+        {
+            if (Machine.Memory.K7Path == null) return;
+            var path = GetStateFilePath();
+            using (var stream = File.OpenWrite(path))
+            {
+                Machine.SaveState(stream);
+            }
+        }
+
+        [Export("restoreState:")]
+        private void RestoreState(NSObject sender)
+        {
+            if (Machine.Memory.K7Path == null) return;
+            var path = GetStateFilePath();
+            if (!File.Exists(path)) return;
+
+            using (var stream = File.OpenRead(path))
+            {
+                Machine.RestoreState(stream);
+            }
+        }
+
+		[Action("validateMenuItem:")]
+		private bool ValidateMenuItem(NSMenuItem item)
+		{
+			switch (item.Tag)
+			{
+				case 1: // save state
+                    return Machine.Memory.K7Path != null;
+				case 2: // restore state
+                    return Machine.Memory.K7Path != null && File.Exists(GetStateFilePath());
+			}
+
+			return true;
+		}
+
+		private string GetStateFilePath()
+		{
+			return Path.ChangeExtension(Machine.Memory.K7Path, ".m5s");
+		}
     }
 }

@@ -3,6 +3,7 @@ using System.IO;
 
 namespace nMO5
 {
+    // experimental
 	internal class K7Reader
 	{
 		private readonly Stream _k7Fis;

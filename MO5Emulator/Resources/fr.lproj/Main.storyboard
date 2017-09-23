@@ -102,6 +102,18 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Outils" id="1ma-uf-pZk">
                                     <items>
+                                        <menuItem title="Enregistrer l'état" tag="1" keyEquivalent="1" id="l46-yH-qFf" userLabel="Save State">
+                                            <connections>
+                                                <action selector="saveState:" target="Ady-hI-5gd" id="Phe-Rh-Ks9"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Charger l'état" tag="2" keyEquivalent="1" id="p5R-cV-91b">
+                                            <modifierMask key="keyEquivalentModifierMask" option="YES"/>
+                                            <connections>
+                                                <action selector="restoreState:" target="Ady-hI-5gd" id="iR3-SP-2sU"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="ekh-ti-MrL"/>
                                         <menuItem title="Tricher" keyEquivalent="C" id="L9M-4f-pjr">
                                             <connections>
                                                 <segue destination="AlE-Oa-6lb" kind="show" id="0e3-ME-9YL"/>
@@ -384,7 +396,7 @@ Gw
                                     <rect key="frame" x="1" y="255" width="420" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
-                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="d8i-pg-jNQ">
+                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="d8i-pg-jNQ">
                                     <rect key="frame" x="224" y="17" width="15" height="102"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
