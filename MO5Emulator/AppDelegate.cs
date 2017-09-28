@@ -1,8 +1,11 @@
 using System;
 using System.IO;
+using System.Threading;
 using AppKit;
 using Foundation;
 using MO5Emulator.Audio;
+using MO5Emulator.Scripting;
+using MoonSharp.Interpreter;
 using nMO5;
 
 namespace MO5Emulator
@@ -12,14 +15,36 @@ namespace MO5Emulator
     {
         private ISound _sound;
         private Machine _machine;
+        private Thread _scriptThread;
+        private Script _script;
+        private Screen _screen;
 
-		public Machine Machine => _machine;
+        public Machine Machine => _machine;
 		public ISound Sound => _sound;
+		public Screen Screen => _screen;
 
         public AppDelegate()
         {
 			_sound = new DummySound();
 			_machine = new Machine(_sound);
+			_screen = new Screen(Machine.Memory);
+
+			UserData.RegisterType<LuaMemory>();
+			UserData.RegisterType<LuaGui>();
+			UserData.RegisterType<LuaColor>();
+			UserData.RegisterType<LuaEmu>();
+			UserData.RegisterType<LuaSaveSlot>();
+			UserData.RegisterType<LuaSaveState>();
+			Script.GlobalOptions.CustomConverters
+				  .SetScriptToClrCustomConversion(DataType.String,
+												  typeof(LuaColor),
+												  (DynValue arg) => LuaColor.Parse(arg.String));
+
+			_script = new Script();
+			_script.Globals["memory"] = new LuaMemory(Machine.Memory);
+			_script.Globals["gui"] = new LuaGui(Screen);
+			_script.Globals["emu"] = new LuaEmu(Machine);
+			_script.Globals["savestate"] = new LuaSaveState(Machine);
         }
 
         public override bool ApplicationShouldTerminateAfterLastWindowClosed(NSApplication sender)
@@ -47,6 +72,19 @@ namespace MO5Emulator
 				NSDocumentController.SharedDocumentController.NoteNewRecentDocumentURL(dlg.Url);
 			}
 		}
+
+        [Export("openLUAScript:")]
+        private void OpenLUAScript(NSObject sender)
+        {
+			var dlg = NSOpenPanel.OpenPanel;
+			dlg.CanChooseFiles = true;
+			dlg.CanChooseDirectories = false;
+
+			if (dlg.RunModal() == 1)
+			{
+                LoadLUAScript(dlg.Url.Path);
+			}
+        }
 
 		private bool OpenFile(string path)
 		{
@@ -123,5 +161,45 @@ namespace MO5Emulator
 		{
 			return Path.ChangeExtension(Machine.Memory.K7Path, ".m5s");
 		}
+
+		private void LoadLUAScript(string file)
+		{
+			if (_scriptThread != null)
+			{
+				_scriptThread.Abort();
+				Machine.IsScriptRunning = false;
+			}
+            _scriptThread = new Thread(OnScriptRun)
+			{
+				IsBackground = true
+			};
+            Machine.IsScriptRunning = true;
+			_scriptThread.Start(file);
+		}
+
+        private void OnScriptRun(object parameter)
+        {
+            var file = (string)parameter;
+            try
+            {
+                _script.DoFile(file);
+            }
+            catch (InterpreterException e)
+            {
+                InvokeOnMainThread(() =>
+                {
+                    var msgFormat = NSBundle.MainBundle.LocalizedString("An error occured in the LUA script!\n{0}.", null);
+                    var message = string.Format(msgFormat, e.DecoratedMessage);
+                    var alert = new NSAlert
+                    {
+                        AlertStyle = NSAlertStyle.Critical,
+                        InformativeText = message,
+                        MessageText = NSBundle.MainBundle.LocalizedString("Oops", null),
+                    };
+                    alert.RunModal();
+                    Machine.IsScriptRunning = false;
+                });
+            }
+        }
     }
 }

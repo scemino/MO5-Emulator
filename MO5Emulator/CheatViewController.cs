@@ -181,18 +181,21 @@ namespace MO5Emulator
 
 		private void UpdateValues()
         {
-            var mem = Memory;
-            foreach (var cheat in GetCheats())
+            this.InvokeOnMainThread(() =>
             {
-                if (cheat.Size == 1)
+                var mem = Memory;
+                foreach (var cheat in GetCheats())
                 {
-                    mem.Set(cheat.Address, cheat.Value);
+                    if (cheat.Size == 1)
+                    {
+                        mem.Set(cheat.Address, cheat.Value);
+                    }
+                    else
+                    {
+                        mem.Set16(cheat.Address, cheat.Value);
+                    }
                 }
-                else
-                {
-                    mem.Set16(cheat.Address, cheat.Value);
-                }
-            }
+            });
         }
     }
 }

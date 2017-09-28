@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using AppKit;
 using CoreGraphics;
 using MO5Emulator.Audio;
@@ -13,17 +12,17 @@ namespace MO5Emulator
     public class GameView : MonoMacGameView
     {
         private int id;
-        private Screen _screen;
         private Color[] _colors;
 
         AppDelegate AppDelegate => (AppDelegate) NSApplication.SharedApplication.Delegate;
 		public Machine Machine => AppDelegate.Machine;
 		public ISound Sound => AppDelegate.Sound;
+        public Screen Screen => AppDelegate.Screen;
 
         public GameView(CGRect frame)
         : base(frame)
         {
-        }
+		}
 
         public override NSView HitTest(CGPoint aPoint)
         {
@@ -46,15 +45,16 @@ namespace MO5Emulator
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
 
-			_screen = new Screen(Machine.Memory);
-
-			base.OnLoad(e);
+            base.OnLoad(e);
         }
 
         protected override void OnUpdateFrame(OpenTK.FrameEventArgs e)
         {
-            Machine.Step();
+            if(!Machine.IsScriptRunning){
+                Machine.Step();
+            }
             (Sound as Sound)?.UpdateQueue();
+
             base.OnUpdateFrame(e);
         }
 
@@ -144,7 +144,7 @@ namespace MO5Emulator
 
         protected override void OnRenderFrame(OpenTK.FrameEventArgs e)
         {
-            _screen.Update(_colors);
+            Screen.Update(_colors);
             GL.BindTexture(TextureTarget.Texture2D, id);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
                           Screen.Width, Screen.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgba,

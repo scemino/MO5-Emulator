@@ -13,6 +13,8 @@ namespace nMO5
         public Memory Memory => _mem;
         public Keyboard Keyboard => _keyboard;
 
+        public bool IsScriptRunning { get; set; }
+
         public event EventHandler Stepping;
 
         public Machine(ISound sound)

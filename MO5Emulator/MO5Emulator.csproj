@@ -50,6 +50,9 @@
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.Mac" />
     <Reference Include="OpenTK" />
+    <Reference Include="MoonSharp.Interpreter">
+      <HintPath>..\packages\MoonSharp.2.0.0.0\lib\netstandard1.6\MoonSharp.Interpreter.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
@@ -95,10 +98,12 @@
     <Folder Include="Assets.xcassets\Remove.imageset\" />
     <Folder Include="Assets.xcassets\Edit.imageset\" />
     <Folder Include="Assets.xcassets\Search.imageset\" />
+    <Folder Include="Scripting\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.cs" />
@@ -148,6 +153,11 @@
       <DependentUpon>SearchCheatViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Audio\DummySound.cs" />
+    <Compile Include="Scripting\LuaMemory.cs" />
+    <Compile Include="Scripting\LuaGui.cs" />
+    <Compile Include="Scripting\LuaColor.cs" />
+    <Compile Include="Scripting\LuaEmu.cs" />
+    <Compile Include="Scripting\LuaSaveState.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />

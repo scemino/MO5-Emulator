@@ -9,25 +9,25 @@ namespace nMO5
 
 		private static readonly Color[] Palette =
         {
-            Color.FromArgb(0x00, 0x00, 0x00),
-            Color.FromArgb(0xF0, 0x00, 0x00),
-            Color.FromArgb(0x00, 0xF0, 0x00),
-            Color.FromArgb(0xF0, 0xF0, 0x00),
+            Color.FromRgb(0x00, 0x00, 0x00),
+            Color.FromRgb(0xF0, 0x00, 0x00),
+            Color.FromRgb(0x00, 0xF0, 0x00),
+            Color.FromRgb(0xF0, 0xF0, 0x00),
 
-            Color.FromArgb(0x00, 0x00, 0xF0),
-            Color.FromArgb(0xF0, 0x00, 0xF0),
-            Color.FromArgb(0x00, 0xF0, 0xF0),
-            Color.FromArgb(0xF0, 0xF0, 0xF0),
+            Color.FromRgb(0x00, 0x00, 0xF0),
+            Color.FromRgb(0xF0, 0x00, 0xF0),
+            Color.FromRgb(0x00, 0xF0, 0xF0),
+            Color.FromRgb(0xF0, 0xF0, 0xF0),
 
-            Color.FromArgb(0x63, 0x63, 0x63),
-            Color.FromArgb(0xF0, 0x63, 0x63),
-            Color.FromArgb(0x63, 0xF0, 0x63),
-            Color.FromArgb(0xF0, 0xF0, 0x63),
+            Color.FromRgb(0x63, 0x63, 0x63),
+            Color.FromRgb(0xF0, 0x63, 0x63),
+            Color.FromRgb(0x63, 0xF0, 0x63),
+            Color.FromRgb(0xF0, 0xF0, 0x63),
 
-            Color.FromArgb(0x00, 0x63, 0xF0),
-            Color.FromArgb(0xF0, 0x63, 0xF0),
-            Color.FromArgb(0x63, 0xF0, 0xF0),
-            Color.FromArgb(0xF0, 0x63, 0x00)
+            Color.FromRgb(0x00, 0x63, 0xF0),
+            Color.FromRgb(0xF0, 0x63, 0xF0),
+            Color.FromRgb(0x63, 0xF0, 0xF0),
+            Color.FromRgb(0xF0, 0x63, 0x00)
         };
 
 		private Color BorderColor=> Palette[_mem.BorderColor];
@@ -49,20 +49,78 @@ namespace nMO5
             Array.Copy(_pixels, dest, _pixels.Length);
         }
 
+        public void SetPixel(int x, int y, Color color)
+        {
+            _pixels[y * Width + x] = color;
+        }
+
+        public Color GetPixel(int x, int y)
+		{
+			return _pixels[y * Width + x];
+		}
+
+        public void DrawBox(int x1, int y1, int x2, int y2, Color fillColor, Color outlinecolor)
+        {
+			int width = x2 - x1;
+			int height = y2 - y1;
+            var offs = x1 + y1 * Width;
+			for (var y = 0; y <= height; y++)
+			{
+				for (var x = 0; x <= width; x++)
+				{
+					_pixels[offs++] = fillColor;
+				}
+                offs += Width - width - 1;
+			}
+            DrawLine(x1, y1, x2, y1, outlinecolor);
+            DrawLine(x1, y1, x1, y2, outlinecolor);
+            DrawLine(x2, y1, x2, y2, outlinecolor);
+            DrawLine(x1, y2, x2, y2, outlinecolor);
+        }
+
+        public void DrawLine(int x1, int y1, int x2, int y2, Color color)
+        {
+			int w = x2 - x1;
+			int h = y2 - y1;
+			int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+			if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
+			if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
+			if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
+			int longest = Math.Abs(w);
+			int shortest = Math.Abs(h);
+			if (!(longest > shortest))
+			{
+				longest = Math.Abs(h);
+				shortest = Math.Abs(w);
+				if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
+				dx2 = 0;
+			}
+			int numerator = longest >> 1;
+			for (int i = 0; i <= longest; i++)
+			{
+				SetPixel(x1, y1, color);
+				numerator += shortest;
+				if (!(numerator < longest))
+				{
+					numerator -= longest;
+					x1 += dx1;
+					y1 += dy1;
+				}
+				else
+				{
+					x1 += dx2;
+					y1 += dy2;
+				}
+			}
+        }
+
         private void DrawLed()
         {
             if (_mem.ShowLed <= 0) return;
             
             _mem.ShowLed--;
             var c = _mem.Led != 0 ? Color.Red : Color.Black;
-            for (var i = 0; i < 16; i++)
-            {
-                var offs = i * Width + Width - 16;
-                for (var j = 0; j < 16; j++)
-                {
-                    _pixels[offs + j] = c;
-                }
-            }
+            DrawBox(Width - 16, 0, Width, 16, c, c);
         }
 
         private void DrawScreen()
