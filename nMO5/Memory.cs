@@ -60,9 +60,12 @@ namespace nMO5
         public int LightPenY { get; set; }
 
         public int ShowLed { get; set; }
-        public int Led { get; private set; }
+		public int Led { get; private set; }
+        public bool[] Key => _key;
 
         public string K7Path => (_k7Fis as FileStream)?.Name;
+
+        public event EventHandler<AddressWrittenEventArgs> Written;
 
         public int BorderColor
         {
@@ -183,44 +186,29 @@ namespace nMO5
         // write with io
         public void Write(int address, int value)
         {
-            var page = (address & 0xF000) >> 12;
+            WriteCore(address, value);
+			Written?.Invoke(this, new AddressWrittenEventArgs(address, 1));
+		}
 
-            if (_mapper[page] >= 14 && _mapper[page] <= 17)
-                return; // Protection en écriture de la ROM
-
-            if (address < 0x1F40)
-            {
-                _dirty[address / 40] = true;
-            }
-            if (page == 0x0A)
-            {
-                Hardware(address, value);
-            }
-            else if (page == 0x0B || page == 0x0C || page == 0x0D
-                     || page == 0x0E)
-            {
-                if (((_carflags & 8) != 0) && (_cartype == 0))
-                {
-                    _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-                    return;
-                }
-            }
-            else
-            {
-                _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-            }
+		public void Write16(int address, int value)
+        {
+            WriteCore(address, value >> 8);
+            WriteCore(address + 1, value & 0xFF);
+            Written?.Invoke(this, new AddressWrittenEventArgs(address, 2));
         }
 
         public void Set(int address, int value)
         {
             var page = (address & 0xF000) >> 12;
             _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+            Written?.Invoke(this, new AddressWrittenEventArgs(address, 1));
         }
 
         public void Set16(int address, int value)
         {
             Set(address, value >> 8);
             Set(address + 1, value & 0xFF);
+            Written?.Invoke(this, new AddressWrittenEventArgs(address, 2));
         }
 
         public int Point(int address)
@@ -302,7 +290,37 @@ namespace nMO5
             _k7Fis?.Seek(0, SeekOrigin.Begin);
         }
 
-        private void SwitchMemo5Bank(int address)
+		private void WriteCore(int address, int value)
+		{
+			var page = (address & 0xF000) >> 12;
+
+			if (_mapper[page] >= 14 && _mapper[page] <= 17)
+				return; // Protection en écriture de la ROM
+
+			if (address < 0x1F40)
+			{
+				_dirty[address / 40] = true;
+			}
+			if (page == 0x0A)
+			{
+				Hardware(address, value);
+			}
+			else if (page == 0x0B || page == 0x0C || page == 0x0D
+					 || page == 0x0E)
+			{
+				if (((_carflags & 8) != 0) && (_cartype == 0))
+				{
+					_mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+					return;
+				}
+			}
+			else
+			{
+				_mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+			}
+		}
+
+		private void SwitchMemo5Bank(int address)
         {
             if (_cartype != CartridgeType.SwitchBank) return;
             if ((address & 0xFFFC) != 0xBFFC) return;
@@ -332,6 +350,7 @@ namespace nMO5
                 }
             }
             _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+            Written?.Invoke(this, new AddressWrittenEventArgs(address, 1));
         }
 
         private void Reset(bool hard = false)

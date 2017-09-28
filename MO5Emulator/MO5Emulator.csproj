@@ -158,6 +158,8 @@
     <Compile Include="Scripting\LuaColor.cs" />
     <Compile Include="Scripting\LuaEmu.cs" />
     <Compile Include="Scripting\LuaSaveState.cs" />
+    <Compile Include="Scripting\AddressRange.cs" />
+    <Compile Include="Scripting\LuaInput.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />

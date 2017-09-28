@@ -1,11 +1,14 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using static nMO5.Util;
 
 namespace nMO5
 {
-    internal class M6809
+    public class M6809
     {
+        public event EventHandler<OpcodeExecutedEventArgs> OpcodeExecuted;
+
         private const int SoundSize = 1024;
 
         private readonly Memory _mem;
@@ -726,8 +729,7 @@ namespace nMO5
 
         private void St16(int r, int adr, int c)
         {
-            _mem.Write(adr, r >> 8);
-            _mem.Write(adr + 1, r & 0xFF);
+            _mem.Write16(adr, r);
             _m1 = _ovfl;
             _sign = r >> 8;
             _res = (_res & 0x100) | ((_sign | r) & 0xFF);
@@ -2469,7 +2471,10 @@ namespace nMO5
 
         private void Fetch()
         {
+            int pc = Pc;
             int opcode = _mem.Read(Pc);
+            int opcode0X10 = 0;
+			int opcode0X11 = 0;
             Pc++;
 
             // 	Sound emulation process
@@ -3252,9 +3257,7 @@ namespace nMO5
 
                 // extended mode
                 case 0x10:
-
-                    int opcode0X10 = _mem.Read(Pc++);
-
+                    opcode0X10 = _mem.Read(Pc++);
                     switch (opcode0X10)
                     {
                         // LDS
@@ -3387,8 +3390,7 @@ namespace nMO5
                     } // of case opcode0x10
                     break;
                 case 0x11:
-
-                    int opcode0X11 = _mem.Read(Pc++);
+                    opcode0X11 = _mem.Read(Pc++);
                     switch (opcode0X11)
                     {
                         // CMP
@@ -3462,6 +3464,26 @@ namespace nMO5
                     System.Console.Error.WriteLine(PrintState());
                     break;
             }
+
+            int op = opcode;
+            if (opcode == 0x10)
+            {
+                op = opcode << 8 | opcode0X10;
+            }
+            else if (opcode == 0x11)
+            {
+                op = opcode << 8 | opcode0X11;
+            }
+            else
+            {
+                op = opcode;
+            }
+            OnOpcodeExecuted(pc, op);
+        }
+
+        private void OnOpcodeExecuted(int pc, int opcode)
+        {
+            OpcodeExecuted?.Invoke(this, new OpcodeExecutedEventArgs(pc, opcode));
         }
 
         private void ReadPenXy()

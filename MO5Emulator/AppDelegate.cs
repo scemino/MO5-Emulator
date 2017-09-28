@@ -35,6 +35,8 @@ namespace MO5Emulator
 			UserData.RegisterType<LuaEmu>();
 			UserData.RegisterType<LuaSaveSlot>();
 			UserData.RegisterType<LuaSaveState>();
+			UserData.RegisterType<LuaInput>();
+
 			Script.GlobalOptions.CustomConverters
 				  .SetScriptToClrCustomConversion(DataType.String,
 												  typeof(LuaColor),
@@ -49,10 +51,11 @@ namespace MO5Emulator
 												  (DynValue arg) => LuaColor.Parse((int)arg.Number));
 
 			_script = new Script();
-			_script.Globals["memory"] = new LuaMemory(Machine.Memory);
+			_script.Globals["memory"] = new LuaMemory(Machine);
 			_script.Globals["gui"] = new LuaGui(Screen);
 			_script.Globals["emu"] = new LuaEmu(Machine);
 			_script.Globals["savestate"] = new LuaSaveState(Machine);
+            _script.Globals["input"] = new LuaInput(Machine);
         }
 
         public override bool ApplicationShouldTerminateAfterLastWindowClosed(NSApplication sender)

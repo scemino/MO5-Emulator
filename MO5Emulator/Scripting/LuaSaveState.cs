@@ -14,7 +14,9 @@ namespace MO5Emulator.Scripting
 
         public bool IsPersistent { get; set; }
 
-        public bool IsAnonymous => _slot < 0 || _slot > 9;
+		public int Number => _slot;
+
+		public bool IsAnonymous => _slot < 0 || _slot > 9;
 
         [MoonSharpHidden]
         public LuaSaveSlot(int slot)
@@ -53,24 +55,26 @@ namespace MO5Emulator.Scripting
             return new LuaSaveSlot(curSlot);
         }
 
-        public void Save(LuaSaveSlot saveState)
+        public void Save(LuaSaveSlot slot)
         {
-            var slot = saveState as LuaSaveSlot;
             if (slot == null)
                 return;
             var stream = new MemoryStream();
             slot.Stream = stream;
             _machine.SaveState(stream);
+			if (slot.IsPersistent && !slot.IsAnonymous)
+			{
+                File.WriteAllBytes(GetStateFilePath(slot.Number), stream.ToArray());
+			}
         }
 
-		public void Load(LuaSaveSlot saveState)
+		public void Load(LuaSaveSlot slot)
 		{
-			var slot = saveState as LuaSaveSlot;
             if (slot == null)
                 return;
             if (slot.Stream == null && _machine.Memory.K7Path != null)
             {
-                var path = GetStateFilePath();
+                var path = GetStateFilePath(slot.Number);
                 if (File.Exists(path))
                 {
                     slot.Stream = File.OpenRead(path);
@@ -86,9 +90,23 @@ namespace MO5Emulator.Scripting
             }
 		}
 
-		private string GetStateFilePath()
+        public void Persist(LuaSaveSlot saveState)
+        {
+            saveState.IsPersistent = true;
+        }
+
+		private string GetStateFilePath(int slot)
 		{
-			return Path.ChangeExtension(_machine.Memory.K7Path, ".m5s");
+            string path;
+            if (slot == 0)
+            {
+                path = _machine.Memory.K7Path;
+            }
+            else
+            {
+                path = string.Format("{0}{1}", _machine.Memory.K7Path, slot);
+            }
+			return Path.ChangeExtension(path, ".m5s");
 		}
     }
 }

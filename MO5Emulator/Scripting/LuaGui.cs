@@ -120,11 +120,41 @@ namespace MO5Emulator.Scripting
             _screen.SetPixel(x, y, color.ToClrColor());
 		}
 
+		public void Drawpixel(int x, int y, LuaColor color)
+		{
+			Pixel(x, y, color);
+		}
+
+		public void Setpixel(int x, int y, LuaColor color)
+		{
+			Pixel(x, y, color);
+		}
+
+		public void Writepixel(int x, int y, LuaColor color)
+		{
+			Pixel(x, y, color);
+		}
+
 		public void Box(int x1, int y1, int x2, int y2, LuaColor fillColor = null, LuaColor outlineColor = null)
 		{
             _screen.DrawBox(x1, y1, x2, y2,
                             fillColor != null ? fillColor.ToClrColor() : Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF),
                             outlineColor != null ? outlineColor.ToClrColor() : Color.White);
+		}
+
+        public void Drawbox(int x1, int y1, int x2, int y2, LuaColor fillColor = null, LuaColor outlineColor = null)
+        {
+            Box(x1, y1, x2, y2, fillColor, outlineColor);
+        }
+
+		public void Rect(int x1, int y1, int x2, int y2, LuaColor fillColor = null, LuaColor outlineColor = null)
+		{
+			Box(x1, y1, x2, y2, fillColor, outlineColor);
+		}
+
+		public void Drawrect(int x1, int y1, int x2, int y2, LuaColor fillColor = null, LuaColor outlineColor = null)
+		{
+			Box(x1, y1, x2, y2, fillColor, outlineColor);
 		}
 
 		public LuaColor GetPixel(int x, int y)
@@ -153,6 +183,11 @@ namespace MO5Emulator.Scripting
 			}
 		}
 
+        public void Drawline(int x1, int y1, int x2, int y2, LuaColor color = null)
+        {
+            Line(x1, y1, x2, y2, color);
+        }
+
         public void Text(int x, int y, string text,
                          LuaColor color = null, LuaColor backColor = null)
         {
@@ -172,6 +207,12 @@ namespace MO5Emulator.Scripting
                     currentX += 4;
                 }
             }
+        }
+
+        public void Drawtext(int x, int y, string text,
+                         LuaColor color = null, LuaColor backColor = null)
+        {
+            Text(x, y, text, color, backColor);
         }
 
         private void DrawChar(int x, int y, char character, Color color, Color backColor)

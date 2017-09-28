@@ -11,7 +11,8 @@ namespace nMO5
         private bool _irq;
 
         public Memory Memory => _mem;
-        public Keyboard Keyboard => _keyboard;
+		public Keyboard Keyboard => _keyboard;
+        public M6809 Cpu => _micro;
 
         public bool IsScriptRunning { get; set; }
 
