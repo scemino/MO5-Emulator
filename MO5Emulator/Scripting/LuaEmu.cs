@@ -26,18 +26,13 @@ namespace MO5Emulator.Scripting
             _machine.ResetSoft();
 		}
 
-		public void Print(string message)
+		public void Frameadvance()
 		{
-            System.Console.WriteLine(message);
-        }
+			_machine.Step();
+			System.Threading.Thread.Sleep(20);
+		}
 
-        public void Frameadvance()
-        {
-            _machine.Step();
-            System.Threading.Thread.Sleep(20);
-        }
-
-        public void Loadrom(string path)
+		public void Loadrom(string path)
         {
             if (!Path.IsPathRooted(path))
                 path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
@@ -63,5 +58,10 @@ namespace MO5Emulator.Scripting
 			}
             return;
         }
+
+		public void Print(string message)
+		{
+			System.Console.WriteLine(message);
+		}
     }
 }

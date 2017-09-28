@@ -39,6 +39,14 @@ namespace MO5Emulator
 				  .SetScriptToClrCustomConversion(DataType.String,
 												  typeof(LuaColor),
 												  (DynValue arg) => LuaColor.Parse(arg.String));
+			Script.GlobalOptions.CustomConverters
+                  .SetScriptToClrCustomConversion(DataType.Table,
+												  typeof(LuaColor),
+                                                  (DynValue arg) => LuaColor.Parse(arg.Table));
+			Script.GlobalOptions.CustomConverters
+                  .SetScriptToClrCustomConversion(DataType.Number,
+												  typeof(LuaColor),
+												  (DynValue arg) => LuaColor.Parse((int)arg.Number));
 
 			_script = new Script();
 			_script.Globals["memory"] = new LuaMemory(Machine.Memory);

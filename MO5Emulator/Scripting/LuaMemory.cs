@@ -8,6 +8,7 @@ namespace MO5Emulator.Scripting
     {
         private Memory _memory;
 
+        [MoonSharpHidden]
         public LuaMemory(Memory memory)
         {
             _memory = memory;
@@ -25,12 +26,12 @@ namespace MO5Emulator.Scripting
 
 		public void Writebyte(int address, int value)
 		{
-            _memory.Write(address, value);
+            _memory.Write(address, value % 256);
 		}
 
 		public void Writeword(int address, int value)
 		{
-			_memory.Write(address, value);
+            _memory.Write(address, value % 65536);
 		}
     }
 }

@@ -109,6 +109,7 @@ namespace MO5Emulator.Scripting
             0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
         };
 
+        [MoonSharpHidden]
         public LuaGui(Screen screen)
 		{
 			_screen = screen;
@@ -123,7 +124,7 @@ namespace MO5Emulator.Scripting
 		{
             _screen.DrawBox(x1, y1, x2, y2,
                             fillColor != null ? fillColor.ToClrColor() : Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF),
-                            outlineColor != null ? outlineColor.ToClrColor() : Color.Black);
+                            outlineColor != null ? outlineColor.ToClrColor() : Color.White);
 		}
 
 		public LuaColor GetPixel(int x, int y)
@@ -131,8 +132,9 @@ namespace MO5Emulator.Scripting
             return new LuaColor(_screen.GetPixel(x, y));
 		}
 
-		public void Line(int x1, int y1, int x2, int y2, LuaColor color)
+		public void Line(int x1, int y1, int x2, int y2, LuaColor color = null)
 		{
+            color = color ?? new LuaColor(Color.White);
 			var dx = x1 - x1;
 			var dy = y2 - y1;
 			var D = 2 * dy - dx;
@@ -151,11 +153,11 @@ namespace MO5Emulator.Scripting
 			}
 		}
 
-        public void Drawtext(int x, int y, string text, 
-                             LuaColor color, LuaColor backColor)
+        public void Text(int x, int y, string text,
+                         LuaColor color = null, LuaColor backColor = null)
         {
             int currentX = x;
-			var col = (color ?? new LuaColor(Color.White)).ToClrColor();
+            var col = (color ?? new LuaColor(Color.White)).ToClrColor();
             var backCol = (backColor ?? new LuaColor(Color.Black)).ToClrColor();
             foreach (var c in text)
             {
