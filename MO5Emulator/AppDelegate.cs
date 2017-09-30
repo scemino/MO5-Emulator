@@ -36,6 +36,7 @@ namespace MO5Emulator
 			UserData.RegisterType<LuaSaveSlot>();
 			UserData.RegisterType<LuaSaveState>();
 			UserData.RegisterType<LuaInput>();
+            UserData.RegisterType<LuaDebugger>();
 
 			Script.GlobalOptions.CustomConverters
 				  .SetScriptToClrCustomConversion(DataType.String,
@@ -55,7 +56,8 @@ namespace MO5Emulator
 			_script.Globals["gui"] = new LuaGui(Screen);
 			_script.Globals["emu"] = new LuaEmu(Machine);
 			_script.Globals["savestate"] = new LuaSaveState(Machine);
-            _script.Globals["input"] = new LuaInput(Machine);
+			_script.Globals["input"] = new LuaInput(Machine);
+            _script.Globals["debugger"] = new LuaDebugger(Machine);
         }
 
         public override bool ApplicationShouldTerminateAfterLastWindowClosed(NSApplication sender)
@@ -211,6 +213,22 @@ namespace MO5Emulator
                     Machine.IsScriptRunning = false;
                 });
             }
+			catch (Exception e)
+			{
+				InvokeOnMainThread(() =>
+				{
+					var msgFormat = NSBundle.MainBundle.LocalizedString("An unknown error occured in the LUA script!\n{0}.", null);
+                    var message = string.Format(msgFormat, e.Message);
+					var alert = new NSAlert
+					{
+						AlertStyle = NSAlertStyle.Critical,
+						InformativeText = message,
+						MessageText = NSBundle.MainBundle.LocalizedString("Oops", null),
+					};
+					alert.RunModal();
+					Machine.IsScriptRunning = false;
+				});
+			}
         }
     }
 }

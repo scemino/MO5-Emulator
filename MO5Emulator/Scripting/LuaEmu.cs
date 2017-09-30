@@ -32,6 +32,16 @@ namespace MO5Emulator.Scripting
 			System.Threading.Thread.Sleep(20);
 		}
 
+        public int Framecount()
+        {
+            return _machine.FrameCount;
+        }
+
+		public string Getdir()
+		{
+            return AppDomain.CurrentDomain.BaseDirectory;
+		}
+
 		public void Loadrom(string path)
         {
             if (!Path.IsPathRooted(path))

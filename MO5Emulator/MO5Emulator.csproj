@@ -160,6 +160,7 @@
     <Compile Include="Scripting\LuaSaveState.cs" />
     <Compile Include="Scripting\AddressRange.cs" />
     <Compile Include="Scripting\LuaInput.cs" />
+    <Compile Include="Scripting\LuaDebugger.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />

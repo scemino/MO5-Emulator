@@ -19,7 +19,8 @@ namespace nMO5
         private int _soundAddr;
         private readonly ISound _play;
 
-        private int _clock;
+		private int _clock;
+		private int _instructionsCount;
 
         /// <summary>
         /// Program counter.
@@ -73,6 +74,9 @@ namespace nMO5
                 B = value & 0xFF;
             }
         }
+
+		public int CyclesCount => _clock;
+		public int InstructionsCount => _instructionsCount;
 
         // fast CC bits (as ints) 
         private int _res;
@@ -133,7 +137,19 @@ namespace nMO5
             Dp = 0x00;
             S = 0x8000;
             Cc = 0x10;
+            _clock = 0;
+            _instructionsCount = 0;
         }
+
+		public void ResetClock()
+		{
+			_clock = 0;
+		}
+
+		public void ResetInstructionsCount()
+		{
+			_instructionsCount = 0;
+		}
 
         // basic 6809 addressing modes
         private int Immed8()
@@ -3479,6 +3495,7 @@ namespace nMO5
                 op = opcode;
             }
             OnOpcodeExecuted(pc, op);
+            _instructionsCount++;
         }
 
         private void OnOpcodeExecuted(int pc, int opcode)

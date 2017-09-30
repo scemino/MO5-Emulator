@@ -17,6 +17,14 @@ Advance the emulator by one frame. It's like pressing the frame advance button o
 
 Most scripts use this function in their main game loop to advance frames. Note that you can also register functions by various methods that run "dead", returning control to the emulator and letting the emulator advance the frame.  For most people, using frame advance in an endless while loop is easier to comprehend so I suggest  starting with that.  This makes more sense when creating bots. Once you move to creating auxillary libraries, try the register() methods.
 
+`int emu.framecount()`
+
+Returns the framecount value. The frame counter runs without a movie running so this always returns a value.
+
+`emu.getdir()`
+
+Returns the path of MO5-Emulator executable as a string.
+
 `emu.loadrom(string filename)`
 
 Loads the ROM from the directory relative to the lua script or from the absolute path. Hence, the filename parameter can be absolute or relative path.
@@ -100,6 +108,24 @@ Registers a function to be called immediately whenever the emulated system runs 
 Since "address" is the address in CPU address space (0x0000 - 0xFFFF), this doesn't take ROM banking into account, so the callback will be called for any bank, and in some cases you'll have to check current bank in your callback function.
 
 The information about memory.register applies to this function as well.
+
+## Debugger Library
+
+`int debugger.getcyclescount()`
+
+Returns an integer value representing the number of CPU cycles elapsed since the poweron or since the last reset of the cycles counter.
+
+`int debugger.getinstructionscount()`
+
+Returns an integer value representing the number of CPU instructions executed since the poweron or since the last reset of the instructions counter.
+
+`debugger.resetcyclescount()`
+
+Resets the cycles counter.
+
+`debugger.resetinstructionscount()`
+
+Resets the instructions counter.
 
 ## GUI Library
 

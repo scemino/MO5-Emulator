@@ -13,7 +13,7 @@ namespace nMO5
         public Memory Memory => _mem;
 		public Keyboard Keyboard => _keyboard;
         public M6809 Cpu => _micro;
-
+        public int FrameCount { get; private set; }
         public bool IsScriptRunning { get; set; }
 
         public event EventHandler Stepping;
@@ -39,6 +39,7 @@ namespace nMO5
 
         public void Step()
         {
+            FrameCount++;
             FullSpeed();
             Stepping?.Invoke(this, EventArgs.Empty);
         }
