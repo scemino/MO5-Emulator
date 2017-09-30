@@ -10,7 +10,7 @@ namespace MO5Emulator.Scripting
         private Machine _machine;
         private Memory _memory;
         private readonly Dictionary<AddressRange, Closure> _registerExecActions;
-        private readonly Dictionary<AddressRange,Closure> _registerWrittenActions;
+        private readonly Dictionary<AddressRange, Closure> _registerWrittenActions;
 
         [MoonSharpHidden]
         public LuaMemory(Machine machine)

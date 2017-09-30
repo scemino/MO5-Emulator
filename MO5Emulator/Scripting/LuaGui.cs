@@ -1,5 +1,4 @@
-﻿using AppKit;
-using MoonSharp.Interpreter;
+﻿using MoonSharp.Interpreter;
 using nMO5;
 
 namespace MO5Emulator.Scripting
@@ -191,6 +190,8 @@ namespace MO5Emulator.Scripting
         public void Text(int x, int y, string text,
                          LuaColor color = null, LuaColor backColor = null)
         {
+            if (string.IsNullOrEmpty(text)) return;
+
             int currentX = x;
             var col = (color ?? new LuaColor(Color.White)).ToClrColor();
             var backCol = (backColor ?? new LuaColor(Color.Black)).ToClrColor();
