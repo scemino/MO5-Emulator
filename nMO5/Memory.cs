@@ -187,28 +187,28 @@ namespace nMO5
         public void Write(int address, int value)
         {
             WriteCore(address, value);
-			Written?.Invoke(this, new AddressWrittenEventArgs(address, 1));
+			Written?.Invoke(this, new AddressWrittenEventArgs(address, 1, value & 0xFF));
 		}
 
 		public void Write16(int address, int value)
         {
             WriteCore(address, value >> 8);
             WriteCore(address + 1, value & 0xFF);
-            Written?.Invoke(this, new AddressWrittenEventArgs(address, 2));
+            Written?.Invoke(this, new AddressWrittenEventArgs(address, 2, value & 0xFFFF));
         }
 
         public void Set(int address, int value)
         {
             var page = (address & 0xF000) >> 12;
             _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-            Written?.Invoke(this, new AddressWrittenEventArgs(address, 1));
+            Written?.Invoke(this, new AddressWrittenEventArgs(address, 1, value & 0xFF));
         }
 
         public void Set16(int address, int value)
         {
             Set(address, value >> 8);
             Set(address + 1, value & 0xFF);
-            Written?.Invoke(this, new AddressWrittenEventArgs(address, 2));
+            Written?.Invoke(this, new AddressWrittenEventArgs(address, 2, value & 0XFFFF));
         }
 
         public int Point(int address)
@@ -350,10 +350,10 @@ namespace nMO5
                 }
             }
             _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-            Written?.Invoke(this, new AddressWrittenEventArgs(address, 1));
+            Written?.Invoke(this, new AddressWrittenEventArgs(address, 1, value & 0xFF));
         }
 
-        private void Reset(bool hard = false)
+        private void Reset()
         {
             _carflags &= 0xEC;
             LoadRom();

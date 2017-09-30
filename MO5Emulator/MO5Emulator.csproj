@@ -161,6 +161,7 @@
     <Compile Include="Scripting\AddressRange.cs" />
     <Compile Include="Scripting\LuaInput.cs" />
     <Compile Include="Scripting\LuaDebugger.cs" />
+    <Compile Include="MemorySearchSession.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />

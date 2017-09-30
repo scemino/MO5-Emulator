@@ -5,9 +5,8 @@
 // Manual changes to this file may not be handled correctly.
 //
 using Foundation;
-using System.CodeDom.Compiler;
 
-namespace MO5Emulator.Base.lproj
+namespace MO5Emulator
 {
 	[Register ("AddressesViewController")]
 	partial class AddressesViewController

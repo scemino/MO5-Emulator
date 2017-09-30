@@ -9,38 +9,44 @@ using System.CodeDom.Compiler;
 
 namespace MO5Emulator.Base.lproj
 {
-	[Register ("SearchCheatViewController")]
-	partial class SearchCheatViewController
-	{
-		[Outlet]
-		AppKit.NSTextField StatusTextField { get; set; }
+    [Register ("SearchCheatViewController")]
+    partial class SearchCheatViewController
+    {
+        [Outlet]
+        AppKit.NSTextField StatusTextField { get; set; }
 
-		[Outlet]
-		AppKit.NSTextField ValueTextField { get; set; }
+        [Outlet]
+        AppKit.NSTextField ValueTextField { get; set; }
 
-		[Action ("ByteSize:")]
-		partial void ByteSize (AppKit.NSButton sender);
+        [Action ("ByteSize:")]
+        partial void ByteSize (AppKit.NSButton sender);
 
-		[Action ("Cancel:")]
-		partial void Cancel (AppKit.NSButton sender);
+        [Action ("Cancel:")]
+        partial void Cancel (AppKit.NSButton sender);
 
-		[Action ("Restart:")]
-		partial void Restart (AppKit.NSButton sender);
+        [Action ("ChangeComparisonMode:")]
+        partial void ChangeComparisonMode (AppKit.NSButton sender);
 
-		[Action ("Search:")]
-		partial void Search (AppKit.NSButton sender);
-		
-		void ReleaseDesignerOutlets ()
-		{
-			if (StatusTextField != null) {
-				StatusTextField.Dispose ();
-				StatusTextField = null;
-			}
+        [Action ("ChangeOperator:")]
+        partial void ChangeOperator (AppKit.NSButton sender);
 
-			if (ValueTextField != null) {
-				ValueTextField.Dispose ();
-				ValueTextField = null;
-			}
-		}
-	}
+        [Action ("Restart:")]
+        partial void Restart (AppKit.NSButton sender);
+
+        [Action ("Search:")]
+        partial void Search (AppKit.NSButton sender);
+        
+        void ReleaseDesignerOutlets ()
+        {
+            if (StatusTextField != null) {
+                StatusTextField.Dispose ();
+                StatusTextField = null;
+            }
+
+            if (ValueTextField != null) {
+                ValueTextField.Dispose ();
+                ValueTextField = null;
+            }
+        }
+    }
 }

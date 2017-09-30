@@ -6,70 +6,60 @@ using AppKit;
 using nMO5;
 using System.Collections.Generic;
 
-namespace MO5Emulator.Base.lproj
+namespace MO5Emulator
 {
 	public partial class AddressesViewController : NSViewController
 	{
 		AppDelegate AppDelegate => (AppDelegate)NSApplication.SharedApplication.Delegate;
 		private Machine Machine => AppDelegate.Machine;
 		private Memory Memory => Machine.Memory;
-                                            
-		private NSMutableArray _cheats = new NSMutableArray();
+
+		private NSMutableArray<CheatModel> _cheats = new NSMutableArray<CheatModel>();
+        private Dictionary<int,CheatModel> _cheatsDic = new Dictionary<int,CheatModel>();
 
 		[Export("cheatModelArray")]
 		public NSArray Cheats => _cheats;
 
 		public AddressesViewController (IntPtr handle) : base (handle)
 		{
+            Memory.Written += OnWritten;
 		}
 
 		[Export("setCheatModelArray:")]
-		public void SetCheat(NSMutableArray array)
+		public void SetCheat(NSMutableArray<CheatModel> array)
 		{
 			WillChangeValue("cheatModelArray");
 			_cheats = array;
 			DidChangeValue("cheatModelArray");
-		}
 
-		public override void ViewWillAppear()
-		{
-			AppDelegate.Machine.Stepping += OnStepping;
-			base.ViewWillAppear();
-		}
+            _cheatsDic.Clear();
+            foreach (var cheat in _cheats)
+            {
+                _cheatsDic[cheat.Address] = cheat;
+                cheat.Value = Read(cheat.Address, cheat.Size);
+            }
+        }
 
-		public override void ViewWillDisappear()
+		private int Read(int address, int count)
 		{
-			AppDelegate.Machine.Stepping -= OnStepping;
-			base.ViewWillDisappear();
-		}
+			if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count), count, "count should be positive");
+			if (count > 4) throw new ArgumentOutOfRangeException(nameof(count), count, "count should be lower than 5");
 
-		private void OnStepping(object sender, EventArgs e)
-		{
-			UpdateValues();
-		}
-
-		private IEnumerable<CheatModel> GetCheats()
-		{
-			for (nuint i = 0; i < _cheats.Count; i++)
+			var memValue = Memory.Read(address);
+			for (var i = 1; i < count; i++)
 			{
-				yield return _cheats.GetItem<CheatModel>(i);
+				memValue <<= 8;
+				memValue |= Memory.Read(address + i);
 			}
+			return memValue;
 		}
 
-		private void UpdateValues()
+		private void OnWritten(object sender, AddressWrittenEventArgs e)
 		{
-			var mem = Memory;
-			foreach (var cheat in GetCheats())
-			{
-				if (cheat.Size == 1)
-				{
-                    cheat.Value = mem.Read(cheat.Address);
-				}
-				else
-				{
-                    cheat.Value = mem.Read16(cheat.Address);
-				}
-			}
+            if (_cheatsDic.TryGetValue(e.Address, out CheatModel cheat))
+            {
+                cheat.Value = e.Value;
+            }
 		}
 	}
 }
