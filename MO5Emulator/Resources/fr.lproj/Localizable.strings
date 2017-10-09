@@ -12,7 +12,7 @@
 
 "Please select the cheat to edit from the list of cheats." = "Sélectionnez s'il-vous-plaît la ligne à éditer.";
 
-"Are you sure you want to delete cheat `{0}` from the table?" = "Êtes-vous sûr de vouloir supprimer la ligne à l'adresse `{0}` ?";
+"Are you sure you want to delete cheat `{0:X}` from the table?" = "Êtes-vous sûr de vouloir supprimer la ligne à l'adresse `{0:X}` ?";
 
 "{0} results found ({1:X})" = "{0} résultats trouvés ({1:X})";
 

@@ -99,6 +99,7 @@
     <Folder Include="Assets.xcassets\Edit.imageset\" />
     <Folder Include="Assets.xcassets\Search.imageset\" />
     <Folder Include="Scripting\" />
+    <Folder Include="Cheat\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -121,37 +122,6 @@
     <Compile Include="Audio\Sound.cs" />
     <Compile Include="Input\VirtualKey.cs" />
     <Compile Include="Input\KeyMappings.cs" />
-    <Compile Include="CheatViewController.cs" />
-    <Compile Include="CheatViewController.designer.cs">
-      <DependentUpon>CheatViewController.cs</DependentUpon>
-    </Compile>
-    <Compile Include="AddCheatViewController.cs" />
-    <Compile Include="AddCheatViewController.designer.cs">
-      <DependentUpon>AddCheatViewController.cs</DependentUpon>
-    </Compile>
-    <Compile Include="CheatWindowController.cs" />
-    <Compile Include="CheatWindowController.designer.cs">
-      <DependentUpon>CheatWindowController.cs</DependentUpon>
-    </Compile>
-    <Compile Include="HexFormatter.cs" />
-    <Compile Include="CheatModel.cs" />
-    <Compile Include="CheatModel.designer.cs">
-      <DependentUpon>CheatModel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="CheatSerializer.cs" />
-    <Compile Include="HexFormatter.designer.cs">
-      <DependentUpon>HexFormatter.cs</DependentUpon>
-    </Compile>
-    <Compile Include="IsOneByteSizeValueTransformer.cs" />
-    <Compile Include="IsTwoBytesSizeValueTransformer.cs" />
-    <Compile Include="AddressesViewController.cs" />
-    <Compile Include="AddressesViewController.designer.cs">
-      <DependentUpon>AddressesViewController.cs</DependentUpon>
-    </Compile>
-    <Compile Include="SearchCheatViewController.cs" />
-    <Compile Include="SearchCheatViewController.designer.cs">
-      <DependentUpon>SearchCheatViewController.cs</DependentUpon>
-    </Compile>
     <Compile Include="Audio\DummySound.cs" />
     <Compile Include="Scripting\LuaMemory.cs" />
     <Compile Include="Scripting\LuaGui.cs" />
@@ -161,7 +131,38 @@
     <Compile Include="Scripting\AddressRange.cs" />
     <Compile Include="Scripting\LuaInput.cs" />
     <Compile Include="Scripting\LuaDebugger.cs" />
-    <Compile Include="MemorySearchSession.cs" />
+    <Compile Include="Cheat\CheatModel.cs" />
+    <Compile Include="Cheat\CheatModel.designer.cs">
+      <DependentUpon>CheatModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cheat\CheatSerializer.cs" />
+    <Compile Include="Cheat\CheatViewController.cs" />
+    <Compile Include="Cheat\CheatViewController.designer.cs">
+      <DependentUpon>CheatViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cheat\CheatWindowController.cs" />
+    <Compile Include="Cheat\CheatWindowController.designer.cs">
+      <DependentUpon>CheatWindowController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cheat\AddCheatViewController.cs" />
+    <Compile Include="Cheat\AddCheatViewController.designer.cs">
+      <DependentUpon>AddCheatViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cheat\AddressesViewController.cs" />
+    <Compile Include="Cheat\AddressesViewController.designer.cs">
+      <DependentUpon>AddressesViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cheat\IsOneByteSizeValueTransformer.cs" />
+    <Compile Include="Cheat\IsTwoBytesSizeValueTransformer.cs" />
+    <Compile Include="Cheat\HexFormatter.cs" />
+    <Compile Include="Cheat\HexFormatter.designer.cs">
+      <DependentUpon>HexFormatter.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cheat\SearchCheatViewController.cs" />
+    <Compile Include="Cheat\SearchCheatViewController.designer.cs">
+      <DependentUpon>SearchCheatViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Cheat\MemorySearchSession.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />

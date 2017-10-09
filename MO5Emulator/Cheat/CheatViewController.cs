@@ -72,7 +72,7 @@ namespace MO5Emulator
 			else
 			{
 				SelectedCheat = _cheats.GetItem<CheatModel>((nuint)CheatTableView.SelectedRow);
-                var message = NSBundle.MainBundle.LocalizedString("Are you sure you want to delete cheat `{0}` from the table?", null);
+                var message = NSBundle.MainBundle.LocalizedString("Are you sure you want to delete cheat `{0:X}` from the table?", null);
 				// Confirm delete
 				var alert = new NSAlert
 				{
