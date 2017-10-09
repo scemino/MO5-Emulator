@@ -11,6 +11,7 @@ Il permet de redécouvrir les anciens jeux et programmes de votre jeunesse, que 
 - cartouches memo5 (format .rom)
 - disquettes (format .fd)
 - gestion du crayon optique
+- captures d'écran
 - enregistrement/restauration de l'état de l'émulateur
 - module permettant de tricher dans les jeux
 - script LUA ([+ de détails](lua.md))

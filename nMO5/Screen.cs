@@ -1,13 +1,14 @@
 ﻿using System;
+using System.IO;
 
 namespace nMO5
 {
     public class Screen
     {
         public const int Width = 336;  // screen width = 320 + 2 borders of 8 pixels
-		public const int Height = 216; // screen height = 200 + 2 boarders of 8 pixels
+        public const int Height = 216; // screen height = 200 + 2 boarders of 8 pixels
 
-		private static readonly Color[] Palette =
+        private static readonly Color[] Palette =
         {
             Color.FromRgb(0x00, 0x00, 0x00),
             Color.FromRgb(0xF0, 0x00, 0x00),
@@ -30,7 +31,8 @@ namespace nMO5
             Color.FromRgb(0xF0, 0x63, 0x00)
         };
 
-		private Color BorderColor=> Palette[_mem.BorderColor];
+        private Color BorderColor => Palette[_mem.BorderColor];
+        public Color[] Pixels => _pixels;
 
         private readonly Color[] _pixels;
 
@@ -39,8 +41,8 @@ namespace nMO5
         public Screen(Memory memory)
         {
             _pixels = new Color[Width * Height];
-			_mem = memory;
-		}
+            _mem = memory;
+        }
 
         public void Update(Color[] dest)
         {
@@ -55,23 +57,23 @@ namespace nMO5
         }
 
         public Color GetPixel(int x, int y)
-		{
-			return _pixels[y * Width + x];
-		}
+        {
+            return _pixels[y * Width + x];
+        }
 
         public void DrawBox(int x1, int y1, int x2, int y2, Color fillColor, Color outlinecolor)
         {
-			int width = x2 - x1;
-			int height = y2 - y1;
+            int width = x2 - x1;
+            int height = y2 - y1;
             var offs = x1 + y1 * Width;
-			for (var y = 0; y <= height; y++)
-			{
-				for (var x = 0; x <= width; x++)
-				{
-					_pixels[offs++] = fillColor;
-				}
+            for (var y = 0; y <= height; y++)
+            {
+                for (var x = 0; x <= width; x++)
+                {
+                    _pixels[offs++] = fillColor;
+                }
                 offs += Width - width - 1;
-			}
+            }
             DrawLine(x1, y1, x2, y1, outlinecolor);
             DrawLine(x1, y1, x1, y2, outlinecolor);
             DrawLine(x2, y1, x2, y2, outlinecolor);
@@ -80,44 +82,44 @@ namespace nMO5
 
         public void DrawLine(int x1, int y1, int x2, int y2, Color color)
         {
-			int w = x2 - x1;
-			int h = y2 - y1;
-			int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
-			if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
-			if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
-			if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
-			int longest = Math.Abs(w);
-			int shortest = Math.Abs(h);
-			if (!(longest > shortest))
-			{
-				longest = Math.Abs(h);
-				shortest = Math.Abs(w);
-				if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
-				dx2 = 0;
-			}
-			int numerator = longest >> 1;
-			for (int i = 0; i <= longest; i++)
-			{
-				SetPixel(x1, y1, color);
-				numerator += shortest;
-				if (!(numerator < longest))
-				{
-					numerator -= longest;
-					x1 += dx1;
-					y1 += dy1;
-				}
-				else
-				{
-					x1 += dx2;
-					y1 += dy2;
-				}
-			}
+            int w = x2 - x1;
+            int h = y2 - y1;
+            int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+            if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
+            if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
+            if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
+            int longest = Math.Abs(w);
+            int shortest = Math.Abs(h);
+            if (!(longest > shortest))
+            {
+                longest = Math.Abs(h);
+                shortest = Math.Abs(w);
+                if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
+                dx2 = 0;
+            }
+            int numerator = longest >> 1;
+            for (int i = 0; i <= longest; i++)
+            {
+                SetPixel(x1, y1, color);
+                numerator += shortest;
+                if (!(numerator < longest))
+                {
+                    numerator -= longest;
+                    x1 += dx1;
+                    y1 += dy1;
+                }
+                else
+                {
+                    x1 += dx2;
+                    y1 += dy2;
+                }
+            }
         }
 
         private void DrawLed()
         {
             if (_mem.ShowLed <= 0) return;
-            
+
             _mem.ShowLed--;
             var c = _mem.Led != 0 ? Color.Red : Color.Black;
             DrawBox(Width - 16, 0, Width, 16, c, c);
@@ -210,8 +212,8 @@ namespace nMO5
                 }
             }
 
-			// draw left/right borders
-			for (var y = 0; y < Height - 16; y++)
+            // draw left/right borders
+            for (var y = 0; y < Height - 16; y++)
             {
                 var offset = (y + 8) * Width;
                 var offset2 = (y + 9) * Width - 8;

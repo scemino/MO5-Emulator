@@ -120,6 +120,12 @@
                                                 <action selector="restoreState:" target="Ady-hI-5gd" id="i6z-z5-N8j"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="ueJ-Jw-YsI"/>
+                                        <menuItem title="Save screenshot" keyEquivalent="S" id="SeV-3d-8Vi">
+                                            <connections>
+                                                <action selector="saveScreenshot:" target="Ady-hI-5gd" id="uT2-5L-pMG"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="9Dm-kR-XTH"/>
                                         <menuItem title="Cheat" keyEquivalent="C" id="L9M-4f-pjr">
                                             <connections>

@@ -120,6 +120,12 @@
                                                 <action selector="restoreState:" target="Ady-hI-5gd" id="iR3-SP-2sU"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="Zyx-e1-du0"/>
+                                        <menuItem title="Faire une capture d'écran" keyEquivalent="S" id="ve5-39-z3c">
+                                            <connections>
+                                                <action selector="saveScreenshot:" target="Ady-hI-5gd" id="q9u-Sa-etP"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="ekh-ti-MrL"/>
                                         <menuItem title="Tricher" keyEquivalent="C" id="L9M-4f-pjr">
                                             <connections>
