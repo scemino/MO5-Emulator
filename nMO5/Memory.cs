@@ -11,7 +11,7 @@ namespace nMO5
         Os9 = 2,
     }
 
-    public class Memory
+    public class Memory : IMemory
     {
         private bool[] _dirty;
 
@@ -60,7 +60,7 @@ namespace nMO5
         public int LightPenY { get; set; }
 
         public int ShowLed { get; set; }
-		public int Led { get; private set; }
+        public int Led { get; private set; }
         public bool[] Key => _key;
 
         public string K7Path => (_k7Fis as FileStream)?.Name;
@@ -78,7 +78,10 @@ namespace nMO5
 
         public Memory()
         {
-            _floppyRom = File.ReadAllBytes("./bios/cd90-640.rom");
+            if (File.Exists("./bios/cd90-640.rom"))
+            {
+                _floppyRom = File.ReadAllBytes("./bios/cd90-640.rom");
+            }
             _mem = new int[18][];
             for (var j = 0; j < _mem.Length; j++)
             {
@@ -187,10 +190,10 @@ namespace nMO5
         public void Write(int address, int value)
         {
             WriteCore(address, value);
-			Written?.Invoke(this, new AddressWrittenEventArgs(address, 1, value & 0xFF));
-		}
+            Written?.Invoke(this, new AddressWrittenEventArgs(address, 1, value & 0xFF));
+        }
 
-		public void Write16(int address, int value)
+        public void Write16(int address, int value)
         {
             WriteCore(address, value >> 8);
             WriteCore(address + 1, value & 0xFF);
@@ -290,37 +293,37 @@ namespace nMO5
             _k7Fis?.Seek(0, SeekOrigin.Begin);
         }
 
-		private void WriteCore(int address, int value)
-		{
-			var page = (address & 0xF000) >> 12;
+        private void WriteCore(int address, int value)
+        {
+            var page = (address & 0xF000) >> 12;
 
-			if (_mapper[page] >= 14 && _mapper[page] <= 17)
-				return; // Protection en écriture de la ROM
+            if (_mapper[page] >= 14 && _mapper[page] <= 17)
+                return; // Protection en écriture de la ROM
 
-			if (address < 0x1F40)
-			{
-				_dirty[address / 40] = true;
-			}
-			if (page == 0x0A)
-			{
-				Hardware(address, value);
-			}
-			else if (page == 0x0B || page == 0x0C || page == 0x0D
-					 || page == 0x0E)
-			{
-				if (((_carflags & 8) != 0) && (_cartype == 0))
-				{
-					_mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-					return;
-				}
-			}
-			else
-			{
-				_mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-			}
-		}
+            if (address < 0x1F40)
+            {
+                _dirty[address / 40] = true;
+            }
+            if (page == 0x0A)
+            {
+                Hardware(address, value);
+            }
+            else if (page == 0x0B || page == 0x0C || page == 0x0D
+                     || page == 0x0E)
+            {
+                if (((_carflags & 8) != 0) && (_cartype == 0))
+                {
+                    _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+                    return;
+                }
+            }
+            else
+            {
+                _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+            }
+        }
 
-		private void SwitchMemo5Bank(int address)
+        private void SwitchMemo5Bank(int address)
         {
             if (_cartype != CartridgeType.SwitchBank) return;
             if ((address & 0xFFFC) != 0xBFFC) return;
@@ -501,7 +504,7 @@ namespace nMO5
             _k7Byte = 0;
         }
 
-        internal void ReadByte(M6809 machine)
+        public void ReadByte(M6809 machine)
         {
             if (!IsInFileOpened) return;
 
@@ -513,7 +516,7 @@ namespace nMO5
             _k7Bit = 0;
         }
 
-        internal void ReadSector()
+        public void ReadSector()
         {
             if (_fd == null)
             {
@@ -566,7 +569,7 @@ namespace nMO5
             }
         }
 
-        internal void ReadBit(M6809 machine)
+        public void ReadBit(M6809 machine)
         {
             if (!IsInFileOpened) return;
 

@@ -11,7 +11,7 @@ namespace nMO5
 
         private const int SoundSize = 1024;
 
-        private readonly Memory _mem;
+        private readonly IMemory _mem;
 
         // Sound emulation parameters
         public byte[] SoundBuffer { get; }
@@ -88,7 +88,7 @@ namespace nMO5
         private int _h2;
         private int _ccrest;
 
-        public M6809(Memory mem, ISound play)
+        public M6809(IMemory mem, ISound play)
         {
             _mem = mem;
             _play = play;
@@ -162,27 +162,22 @@ namespace nMO5
 
         private int Immed16()
         {
-            int m;
-            m = Pc;
+            int m = Pc;
             Pc += 2;
             return m;
         }
 
         private int Direc()
         {
-            int m;
-            m = (Dp << 8) | _mem.Read(Pc);
+            int m = (Dp << 8) | _mem.Read(Pc);
             Pc++;
             return m;
         }
 
         private int Etend()
         {
-            int m;
-            m = _mem.Read(Pc) << 8;
-            Pc++;
-            m |= _mem.Read(Pc);
-            Pc++;
+            int m = _mem.Read16(Pc);
+            Pc += 2;
             return m;
         }
 
@@ -724,8 +719,7 @@ namespace nMO5
 
         private int Ld16(int m, int c)
         {
-            int r;
-            r = ((_mem.Read(m) << 8) | _mem.Read(m + 1)) & 0xFFFF;
+            int r = _mem.Read16(m);
             _m1 = _ovfl;
             _sign = r >> 8;
             _res = (_res & 0x100) | ((_sign | r) & 0xFF);
