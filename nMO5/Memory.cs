@@ -18,12 +18,9 @@ namespace nMO5
         private int _k7Bit;
         private int _k7Byte;
 
-        private Stream _k7Fis;
-        private Stream _k7Fos;
+        private Stream _k7FileStream;
         private Stream _fd;
-        private bool IsInFileOpened => _k7Fis != null;
-        private bool IsOutFileOpened => _k7Fos != null;
-        private string _k7OutName;
+        private bool IsFileOpened => _k7FileStream != null;
         private bool[] _key;
         private int[] _mapper;
 
@@ -63,7 +60,7 @@ namespace nMO5
         public int Led { get; private set; }
         public bool[] Key => _key;
 
-        public string K7Path => (_k7Fis as FileStream)?.Name;
+        public string K7Path => (_k7FileStream as FileStream)?.Name;
 
         public event EventHandler<AddressWrittenEventArgs> Written;
 
@@ -248,14 +245,13 @@ namespace nMO5
             Console.WriteLine("opening: {0}", k7);
             try
             {
-                _k7Fis?.Dispose();
-                _k7Fis = File.OpenRead(k7);
+                _k7FileStream?.Dispose();
+                _k7FileStream = File.Open(k7, FileMode.OpenOrCreate, FileAccess.ReadWrite);
 
-                var indexMax = _k7Fis.Length >> 9;
+                var indexMax = _k7FileStream.Length >> 9;
                 Console.WriteLine("Max index: {0}", indexMax);
 
-                //K7Reader.Read(_k7Fis);
-                _k7Fis.Seek(0, SeekOrigin.Begin);
+                _k7FileStream.Seek(0, SeekOrigin.Begin);
 
             }
             catch (Exception e)
@@ -290,7 +286,7 @@ namespace nMO5
 
         public void Rewind()
         {
-            _k7Fis?.Seek(0, SeekOrigin.Begin);
+            _k7FileStream?.Seek(0, SeekOrigin.Begin);
         }
 
         private void WriteCore(int address, int value)
@@ -478,42 +474,22 @@ namespace nMO5
             }
         }
 
-        private void CreateK7File()
+        public void ReadK7Byte(M6809 machine)
         {
-            if (_k7OutName != null)
-                return;
+            if (!IsFileOpened) return;
 
-            var today = DateTime.Now;
-
-            _k7OutName = today.ToString("yyyy-MM-dd-HH_mm_ss") + ".k7";
-
-            Console.WriteLine("Creating:" + _k7OutName);
-            try
-            {
-                _k7Fos?.Dispose();
-                _k7Fos = File.OpenWrite(_k7OutName);
-                Console.Error.WriteLine("Information : new file {0}", _k7OutName);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine("Error : file not created {0}", e);
-                return;
-            }
-
-            _k7Bit = 0;
-            _k7Byte = 0;
-        }
-
-        public void ReadByte(M6809 machine)
-        {
-            if (!IsInFileOpened) return;
-
-            int data = 0;
-            _k7Byte = _k7Fis.ReadByte();
+            _k7Byte = _k7FileStream.ReadByte();
 
             machine.A = _k7Byte;
-            Set(0x2045, data);
+            Set(0x2045, 0);
             _k7Bit = 0;
+        }
+
+        public void WriteK7Byte(M6809 machine)
+        {
+            if (!IsFileOpened) return;
+            _k7FileStream.WriteByte((byte)machine.A);
+            Set(0x2045, 0);
         }
 
         public void ReadSector()
@@ -571,14 +547,14 @@ namespace nMO5
 
         public void ReadBit(M6809 machine)
         {
-            if (!IsInFileOpened) return;
+            if (!IsFileOpened) return;
 
             // need to read 1 byte ?
             if (_k7Bit == 0x00)
             {
                 try
                 {
-                    _k7Byte = _k7Fis.ReadByte();
+                    _k7Byte = _k7FileStream.ReadByte();
                 }
                 catch (Exception)
                 {

@@ -87,6 +87,7 @@ namespace nMO5
         private int _h1;
         private int _h2;
         private int _ccrest;
+        private FileStream _fPrinter;
 
         public M6809(IMemory mem, ISound play)
         {
@@ -666,7 +667,7 @@ namespace nMO5
                     return M;
                 case 0xFE: return 0; //i_undoc;	/* empty */
             }
-            System.Console.Error.WriteLine("Indexed mode not implemented");
+            Console.Error.WriteLine("Indexed mode not implemented");
             return 0;
         }
 
@@ -3394,8 +3395,8 @@ namespace nMO5
                             break;
 
                         default:
-                            System.Console.Error.WriteLine("opcode 10 {0:X2} not implemented", opcode0X10);
-                            System.Console.Error.WriteLine(PrintState());
+                            Console.Error.WriteLine("opcode 10 {0:X2} not implemented", opcode0X10);
+                            Console.Error.WriteLine(PrintState());
                             break;
                     } // of case opcode0x10
                     break;
@@ -3437,12 +3438,14 @@ namespace nMO5
                             break;
                         case 0xF1: // lecture octet cassette (pour 6809)
                         case 0xED: // lecture octet cassette (pour compatibilite 6309)
-                            _mem.ReadByte(this);
+                            _mem.ReadK7Byte(this);
                             _clock += 64;
                             break;
-                        // TODO
-                        // 0xF2: ecriture octet cassette(pour 6809)
-                        // 0xEE: ecriture octet cassette(pour compatibilite 6309)
+                        case 0xF2: // ecriture octet cassette(pour 6809)
+                        case 0xEE: // ecriture octet cassette(pour compatibilite 6309)
+                            _mem.WriteK7Byte(this);
+                            _clock += 64;
+                            break;
                         case 0xF3: // initialisation controleur disquette
                             _clock += 64;
                             break;
@@ -3454,7 +3457,9 @@ namespace nMO5
                         // TODO:
                         // 0xF8: lecture position souris
                         // 0xF9: lecture des boutons de la souris
-                        // 0xFA: envoi d'un octet a l'imprimante
+                        case 0xFA: // envoi d'un octet a l'imprimante
+                            Print();
+                            break;
                         // 0xFC: lecture du clavier TO8
                         // 0xFD: ecriture vers clavier TO8
                         // 0xFE: emission commande nanoreseau
@@ -3463,15 +3468,15 @@ namespace nMO5
                             _clock += 64;
                             break;
                         default:
-                            System.Console.Error.WriteLine("opcode 11 {0:X2} not implemented", opcode0X11);
-                            System.Console.Error.WriteLine(PrintState());
+                            Console.Error.WriteLine("opcode 11 {0:X2} not implemented", opcode0X11);
+                            Console.Error.WriteLine(PrintState());
                             break;
                     } // of case opcode 0x11 
                     break;
 
                 default:
-                    System.Console.Error.WriteLine("opcode {0:X2} not implemented", opcode);
-                    System.Console.Error.WriteLine(PrintState());
+                    Console.Error.WriteLine("opcode {0:X2} not implemented", opcode);
+                    Console.Error.WriteLine(PrintState());
                     break;
             }
 
@@ -3490,6 +3495,17 @@ namespace nMO5
             }
             OnOpcodeExecuted(pc, op);
             _instructionsCount++;
+        }
+
+        private void Print()
+        {
+            if (_fPrinter == null)
+            {
+                _fPrinter = File.OpenWrite("mo5-printer.txt");
+            }
+            _fPrinter.WriteByte((byte)B);
+            Cc &= 0xFE;
+            Setcc(Cc);
         }
 
         private void OnOpcodeExecuted(int pc, int opcode)
