@@ -40,7 +40,6 @@ namespace MO5Emulator
                   System.Globalization.CultureInfo.CurrentCulture, out int hexValue))
             {
                 obj = null;
-                // TODO: translate
                 error = new NSString(@"Hexadecimal format not recognized");
                 return false;
             }
@@ -48,7 +47,6 @@ namespace MO5Emulator
             if (hexValue < Minimum)
             {
                 obj = new NSNumber(Minimum);
-                // TODO: translate
                 error = new NSString(@"Value out of bounds");
                 return false;
             }
@@ -56,7 +54,6 @@ namespace MO5Emulator
             if (hexValue > Maximum)
             {
                 obj = new NSNumber(Maximum);
-                // TODO: translate
                 error = new NSString(@"Value out of bounds");
                 return false;
             }
