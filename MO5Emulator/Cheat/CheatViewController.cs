@@ -188,11 +188,11 @@ namespace MO5Emulator
                 {
                     if (cheat.Size == 1)
                     {
-                        mem.Set(cheat.Address, cheat.Value);
+                        mem.Write(cheat.Address, cheat.Value);
                     }
                     else
                     {
-                        mem.Set16(cheat.Address, cheat.Value);
+                        mem.Write16(cheat.Address, cheat.Value);
                     }
                 }
             });

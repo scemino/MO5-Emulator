@@ -72,5 +72,25 @@ namespace MO5Emulator.Input
 			{(char)0xF702, new VirtualKey(Mo5Key.Left) },
 			{(char)0xF703, new VirtualKey(Mo5Key.Right) }
 		};
+
+        public static readonly Dictionary<char, JoystickOrientation> Joystick1Orientations = new Dictionary<char, JoystickOrientation>
+        {
+            {'z', JoystickOrientation.North },
+            {'s', JoystickOrientation.South },
+            {'q', JoystickOrientation.West },
+            {'d', JoystickOrientation.East }
+        };
+
+        public static readonly char Joystick1Button = 'v';
+
+        public static readonly Dictionary<char, JoystickOrientation> Joystick2Orientations = new Dictionary<char, JoystickOrientation>
+        {
+            {'o', JoystickOrientation.North },
+            {'l', JoystickOrientation.South },
+            {'k', JoystickOrientation.West },
+            {'m', JoystickOrientation.East }
+        };
+
+        public static readonly char Joystick2Button = 'n';
     }
 }

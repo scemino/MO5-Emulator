@@ -33,13 +33,9 @@ namespace nMO5
         // 14 15 16 17  ROM     4
         private int[][] _mem;
 
-        // Registres du 6821
-        public int Ora;
-        public int Orb;
-        public int Ddra;
-        public int Ddrb;
-        public int Cra;
+        // I/O ports
         public int Crb;
+        private int[] _ports;
 
         // Cartridge
         private CartridgeType _cartype;
@@ -55,6 +51,10 @@ namespace nMO5
         public bool LightPenClick { get; set; }
         public int LightPenX { get; set; }
         public int LightPenY { get; set; }
+
+        // Joystick parameters
+        public int JoystickPosition { get; set; }
+        public int JoystickAction { get; set; }
 
         public int ShowLed { get; set; }
         public int Led { get; private set; }
@@ -79,6 +79,7 @@ namespace nMO5
             {
                 _floppyRom = File.ReadAllBytes("./bios/cd90-640.rom");
             }
+            _ports = new int[0x40];
             _mem = new int[18][];
             for (var j = 0; j < _mem.Length; j++)
             {
@@ -89,6 +90,8 @@ namespace nMO5
             };
             _key = new bool[256];
             _dirty = new bool[200];
+            JoystickPosition = 0xFF; // center of joystick 
+            JoystickAction = 0xC0;   // button released
 
             Reset();
         }
@@ -104,12 +107,11 @@ namespace nMO5
                 }
             }
             bw.Write(_mapper[0] != 0);
-            bw.Write(Ora);
-            bw.Write(Orb);
-            bw.Write(Ddra);
-            bw.Write(Ddrb);
-            bw.Write(Cra);
             bw.Write(Crb);
+            for (int i = 0; i < _ports.Length; i++)
+            {
+                bw.Write(_ports[i]);
+            }
             bw.Write(SoundMem);
         }
 
@@ -134,12 +136,11 @@ namespace nMO5
                 _mapper[0] = 0;
                 _mapper[1] = 1;
             }
-            Ora = br.ReadInt32();
-            Orb = br.ReadInt32();
-            Ddra = br.ReadInt32();
-            Ddrb = br.ReadInt32();
-            Cra = br.ReadInt32();
             Crb = br.ReadInt32();
+            for (int i = 0; i < _ports.Length; i++)
+            {
+                _ports[i] = br.ReadInt32();
+            }
             SoundMem = br.ReadInt32();
             for (int i = 0; i < _dirty.Length; i++)
             {
@@ -156,26 +157,51 @@ namespace nMO5
         // read with io
         public int Read(int address)
         {
-            if (address == 0xA7CB)
-            {
-                return (_carflags & 0x3F) | ((_carflags & 0x80) >> 1) | ((_carflags & 0x40) << 1);
-            }
-            if (address >= 0xA000 && address < 0xA7C0)
-            {
-                return _floppyRom[address & 0x7FF];
-            }
             var page = (address & 0xF000) >> 12;
-            if (page == 0x0B)
+            switch (page)
             {
-                SwitchMemo5Bank(address);
+                case 0x0A:
+                    if (address >= 0xA000 && address < 0xA7C0)
+                    {
+                        return _floppyRom[address & 0x7FF];
+                    }
+                    switch (address)
+                    {
+                        case 0xA7C0:
+                            const int tapeDrivePresent = 0x80;
+                            return _ports[0] | tapeDrivePresent | (LightPenClick ? 0x20 : 0);
+                        case 0xA7C1:
+                            return _ports[1] | (_key[_ports[1] & 0xFE] ? 0 : 0x80);
+                        case 0xA7C2:
+                            return _ports[2];
+                        case 0xA7C3:
+                            return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
+                        case 0xA7CB:
+                            return (_carflags & 0x3F) | ((_carflags & 0x80) >> 1) | ((_carflags & 0x40) << 1);
+                        case 0xA7CC:
+                            return ((_ports[0x0E] & 4) != 0) ? JoystickPosition : _ports[0x0C];
+                        case 0xA7CD:
+                            return ((_ports[0x0F] & 4) != 0) ? JoystickAction : _ports[0x0D];
+                        case 0xA7CE:
+                            return 4;
+                        case 0xA7D8:
+                            return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
+                        case 0xA7E1: return 0xFF; //0 means printer error #53
+                        case 0xA7E6: return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
+                        case 0xA7E7: return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
+                        default:
+                            if (address >= 0xA7CF && address < 0xA800)
+                            {
+                                return (_ports[address & 0x3F]);
+                            }
+                            return 0;
+                    }
+                case 0x0B:
+                    SwitchMemo5Bank(address);
+                    return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
+                default:
+                    return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
             }
-            var value = _mem[_mapper[page]][address & 0xFFF] & 0xFF;
-            if (address == 0xA7C0)
-            {
-                const int tapeDrivePresent = 0x80;
-                value |= tapeDrivePresent | (LightPenClick ? 0x20 : 0);
-            }
-            return value;
         }
 
         public int Read16(int address)
@@ -204,13 +230,6 @@ namespace nMO5
             Written?.Invoke(this, new AddressWrittenEventArgs(address, 1, value & 0xFF));
         }
 
-        public void Set16(int address, int value)
-        {
-            Set(address, value >> 8);
-            Set(address + 1, value & 0xFF);
-            Written?.Invoke(this, new AddressWrittenEventArgs(address, 2, value & 0XFFFF));
-        }
-
         public int Point(int address)
         {
             var page = (address & 0xF000) >> 12;
@@ -230,15 +249,9 @@ namespace nMO5
             return ret;
         }
 
-        public void SetKey(int i)
-        {
-            _key[i] = true;
-        }
+        public void SetKey(int i) => _key[i] = true;
 
-        public void RemKey(int i)
-        {
-            _key[i] = false;
-        }
+        public void RemKey(int i) => _key[i] = false;
 
         public void SetK7File(string k7)
         {
@@ -356,10 +369,7 @@ namespace nMO5
         {
             _carflags &= 0xEC;
             LoadRom();
-            Cra = 0x00;
             Crb = 0x00;
-            Ddra = 0x5F;
-            Ddrb = 0x7F;
 
             _mem[0xA + 2][0x7CC] = 0xFF;
             _mem[0xA + 2][0x7CD] = 0xFF;
@@ -414,62 +424,46 @@ namespace nMO5
             switch (adr)
             {
                 case 0xA7C0:
-                    if ((Cra & 0x04) == 0x04)
-                    // Accès à ORA
+                    _ports[0] = op & 0x5F;
+                    if ((op & 0x01) == 0x01)
                     {
-                        if ((op & 0x01) == 0x01)
-                        {
-                            _mapper[0] = 0;
-                            _mapper[1] = 1;
-                        }
-                        else
-                        {
-                            _mapper[0] = 2;
-                            _mapper[1] = 3;
-                        }
-                        // Mise à jour de ORA selon le masque DDRA
-                        op |= 0x80;
-                        Ora = (Ora & (Ddra ^ 0xFF)) | (op & Ddra);
-                        _mem[0xA + 2][0x7C0] = Ora;
+                        _mapper[0] = 0;
+                        _mapper[1] = 1;
                     }
                     else
                     {
-                        Ddra = op;
-                        _mem[0xA + 2][0x7C0] = op;
+                        _mapper[0] = 2;
+                        _mapper[1] = 3;
                     }
                     break;
                 case 0xA7C1:
-                    if ((Crb & 0x04) == 0x04)
-                    // Accès à ORB
-                    {
-                        Orb = (Orb & (Ddrb ^ 0xFF)) | (op & Ddrb);
-
-                        // GESTION HARD DU CLAVIER
-                        if (_key[Orb & 0x7E])
-                            Orb = Orb & 0x7F;
-                        else
-                            Orb = Orb | 0x80;
-
-                        _mem[0xA + 2][0x7C1] = Orb;
-                        SoundMem = (Orb & 1) << 5;
-                    }
-                    else
-                    {
-                        Ddrb = op;
-                        _mem[0xA + 2][0x7C1] = op;
-                    }
+                    _ports[1] = op & 0x7F;
+                    SoundMem = (op & 1) << 5;
                     break;
                 case 0xA7C2:
-                    Cra = (Cra & 0xD0) | (op & 0x3F);
-                    _mem[0xA + 2][0x7C2] = Cra;
+                    _ports[2] = op & 0x3F;
                     break;
                 case 0xA7C3:
+                    _ports[3] = op & 0x3F;
                     Crb = (Crb & 0xD0) | (op & 0x3F);
                     _mem[0xA + 2][0x7C3] = Crb;
                     break;
                 case 0xA7CB:
                     _carflags = op;
                     LoadRom();
+                    break;
+                case 0xA7CC:
+                    _ports[0x0C] = op;
+                    break;
+                case 0xA7CD:
+                    _ports[0x0D] = op;
+                    SoundMem = op & 0x3F;
+                    break;
+                case 0xA7CE:
+                    _ports[0x0E] = op;
+                    break;
+                case 0xA7CF:
+                    _ports[0x0F] = op;
                     break;
             }
         }

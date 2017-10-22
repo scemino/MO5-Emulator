@@ -3517,8 +3517,8 @@ namespace nMO5
         {
             if ((_mem.LightPenX < 0) || (_mem.LightPenX >= 320)) { Cc |= 1; Setcc(Cc); return; }
             if ((_mem.LightPenY < 0) || (_mem.LightPenY >= 200)) { Cc |= 1; Setcc(Cc); return; }
-            _mem.Set16(S + 6, _mem.LightPenX);
-            _mem.Set16(S + 8, _mem.LightPenY);
+            _mem.Write16(S + 6, _mem.LightPenX);
+            _mem.Write16(S + 8, _mem.LightPenY);
             Cc &= 0xFE;
             Setcc(Cc);
         }

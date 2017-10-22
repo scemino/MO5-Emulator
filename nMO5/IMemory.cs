@@ -14,7 +14,6 @@
 
         void Write(int address, int value);
         void Write16(int address, int value);
-        void Set16(int address, int value);
         void ReadSector();
     }
 }

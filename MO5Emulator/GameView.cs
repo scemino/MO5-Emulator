@@ -14,15 +14,15 @@ namespace MO5Emulator
         private int id;
         private Color[] _colors;
 
-        AppDelegate AppDelegate => (AppDelegate) NSApplication.SharedApplication.Delegate;
-		public Machine Machine => AppDelegate.Machine;
-		public ISound Sound => AppDelegate.Sound;
+        AppDelegate AppDelegate => (AppDelegate)NSApplication.SharedApplication.Delegate;
+        public Machine Machine => AppDelegate.Machine;
+        public ISound Sound => AppDelegate.Sound;
         public Screen Screen => AppDelegate.Screen;
 
         public GameView(CGRect frame)
         : base(frame)
         {
-		}
+        }
 
         public override NSView HitTest(CGPoint aPoint)
         {
@@ -50,7 +50,8 @@ namespace MO5Emulator
 
         protected override void OnUpdateFrame(OpenTK.FrameEventArgs e)
         {
-            if(!Machine.IsScriptRunning){
+            if (!Machine.IsScriptRunning)
+            {
                 Machine.Step();
             }
             (Sound as Sound)?.UpdateQueue();
@@ -98,6 +99,26 @@ namespace MO5Emulator
             if (theEvent.CharactersIgnoringModifiers.Length == 0) return;
             var c = theEvent.CharactersIgnoringModifiers[0];
             Keyboard(c, Machine.Keyboard.KeyPressed);
+
+            if (KeyMappings.Joystick1Orientations.TryGetValue(c, out JoystickOrientation orientation))
+            {
+                Machine.Joystick1(orientation, true);
+            }
+
+            if (c == KeyMappings.Joystick1Button)
+            {
+                Machine.Joystick1Button(true);
+            }
+
+            if (KeyMappings.Joystick2Orientations.TryGetValue(c, out orientation))
+            {
+                Machine.Joystick2(orientation, true);
+            }
+
+            if (c == KeyMappings.Joystick2Button)
+            {
+                Machine.Joystick2Button(true);
+            }
         }
 
         public override void KeyUp(NSEvent theEvent)
@@ -105,6 +126,26 @@ namespace MO5Emulator
             if (theEvent.CharactersIgnoringModifiers.Length == 0) return;
             var c = theEvent.CharactersIgnoringModifiers[0];
             Keyboard(c, Machine.Keyboard.KeyReleased);
+
+            if (KeyMappings.Joystick1Orientations.TryGetValue(c, out JoystickOrientation orientation))
+            {
+                Machine.Joystick1(orientation, false);
+            }
+
+            if (c == KeyMappings.Joystick1Button)
+            {
+                Machine.Joystick1Button(false);
+            }
+
+            if (KeyMappings.Joystick2Orientations.TryGetValue(c, out orientation))
+            {
+                Machine.Joystick2(orientation, true);
+            }
+
+            if (c == KeyMappings.Joystick2Button)
+            {
+                Machine.Joystick2Button(true);
+            }
         }
 
         private void Keyboard(char c, Action<Mo5Key> action)

@@ -3,6 +3,14 @@ using System.IO;
 
 namespace nMO5
 {
+    public enum JoystickOrientation
+    {
+        North = 1,
+        South = 2,
+        West = 4,
+        East = 8,
+    }
+
     public class Machine
     {
         private readonly Memory _mem;
@@ -11,7 +19,7 @@ namespace nMO5
         private bool _irq;
 
         public Memory Memory => _mem;
-		public Keyboard Keyboard => _keyboard;
+        public Keyboard Keyboard => _keyboard;
         public M6809 Cpu => _micro;
         public int FrameCount { get; private set; }
         public bool IsScriptRunning { get; set; }
@@ -75,6 +83,54 @@ namespace nMO5
             }
             _mem.CloseMemo();
             _micro.Reset();
+        }
+
+        public void Joystick1(JoystickOrientation orientation, bool isPressed)
+        {
+            if (isPressed)
+            {
+                _mem.JoystickPosition &= ~(int)orientation;
+            }
+            else
+            {
+                _mem.JoystickPosition |= (int)orientation;
+            }
+        }
+
+        public void Joystick2(JoystickOrientation orientation, bool isPressed)
+        {
+            if (isPressed)
+            {
+                _mem.JoystickPosition &= ~((int)orientation << 8);
+            }
+            else
+            {
+                _mem.JoystickPosition |= ((int)orientation << 8);
+            }
+        }
+
+        public void Joystick1Button(bool isPressed)
+        {
+            if (isPressed)
+            {
+                _mem.JoystickAction &= ~0x40;
+            }
+            else
+            {
+                _mem.JoystickAction |= 0x40;
+            }
+        }
+
+        public void Joystick2Button(bool isPressed)
+        {
+            if (isPressed)
+            {
+                _mem.JoystickAction &= ~0x80;
+            }
+            else
+            {
+                _mem.JoystickAction |= 0x80;
+            }
         }
 
         // the emulator main loop
