@@ -47,7 +47,6 @@ namespace nMO5
         public void Update(Color[] dest)
         {
             DrawScreen();
-            DrawLed();
             Array.Copy(_pixels, dest, _pixels.Length);
         }
 
@@ -114,15 +113,6 @@ namespace nMO5
                     y1 += dy2;
                 }
             }
-        }
-
-        private void DrawLed()
-        {
-            if (_mem.ShowLed <= 0) return;
-
-            _mem.ShowLed--;
-            var c = _mem.Led != 0 ? Color.Red : Color.Black;
-            DrawBox(Width - 16, 0, Width, 16, c, c);
         }
 
         private void DrawScreen()

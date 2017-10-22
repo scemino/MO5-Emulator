@@ -44,6 +44,8 @@ namespace nMO5
         private byte[] _car;
 
         private readonly byte[] _floppyRom;
+        private long _indexMax;
+        private long _index;
 
         public int SoundMem { get; private set; }
 
@@ -56,13 +58,16 @@ namespace nMO5
         public int JoystickPosition { get; set; }
         public int JoystickAction { get; set; }
 
-        public int ShowLed { get; set; }
-        public int Led { get; private set; }
         public bool[] Key => _key;
 
+        public string DiskPath { get; private set; }
+        public string MemoPath { get; private set; }
         public string K7Path => (_k7FileStream as FileStream)?.Name;
+        public long Index => _index;
+        public long IndexMax => _indexMax;
 
         public event EventHandler<AddressWrittenEventArgs> Written;
+        public event EventHandler IndexChanged;
 
         public int BorderColor
         {
@@ -72,6 +77,7 @@ namespace nMO5
                 return (value >> 1) & 0x0F;
             }
         }
+
 
         public Memory()
         {
@@ -146,12 +152,6 @@ namespace nMO5
             {
                 _dirty[i] = true;
             }
-        }
-
-        public void OpenDisk(string path)
-        {
-            _fd?.Dispose();
-            _fd = File.OpenRead(path);
         }
 
         // read with io
@@ -253,16 +253,16 @@ namespace nMO5
 
         public void RemKey(int i) => _key[i] = false;
 
-        public void SetK7File(string k7)
+        public void OpenK7(string k7)
         {
-            Console.WriteLine("opening: {0}", k7);
             try
             {
-                _k7FileStream?.Dispose();
+                EjectAll();
                 _k7FileStream = File.Open(k7, FileMode.OpenOrCreate, FileAccess.ReadWrite);
 
-                var indexMax = _k7FileStream.Length >> 9;
-                Console.WriteLine("Max index: {0}", indexMax);
+                _indexMax = _k7FileStream.Length >> 9;
+                _index = 0;
+                IndexChanged?.Invoke(this, EventArgs.Empty);
 
                 _k7FileStream.Seek(0, SeekOrigin.Begin);
 
@@ -281,6 +281,9 @@ namespace nMO5
         {
             using (var memo = File.OpenRead(path))
             {
+                EjectAll();
+                MemoPath = path;
+                IndexChanged?.Invoke(this, EventArgs.Empty);
                 _carsize = Math.Min(memo.Length, 0x10000);
                 _car = new byte[_carsize];
                 memo.Read(_car, 0, (int)_carsize);
@@ -289,6 +292,24 @@ namespace nMO5
             _carflags = 4; //cartridge enabled, write disabled, bank 0; 
 
             Reset();
+        }
+
+        public void OpenDisk(string path)
+        {
+            EjectAll();
+            _fd = File.OpenRead(path);
+            DiskPath = path;
+            IndexChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void EjectAll()
+        {
+            _k7FileStream?.Dispose();
+            _k7FileStream = null;
+            MemoPath = null;
+            _fd?.Dispose();
+            _fd = null;
+            DiskPath = null;
         }
 
         public void CloseMemo()
@@ -473,6 +494,11 @@ namespace nMO5
             if (!IsFileOpened) return;
 
             _k7Byte = _k7FileStream.ReadByte();
+            if ((_k7FileStream.Position & 511) == 0)
+            {
+                _index = _k7FileStream.Position >> 9;
+                IndexChanged?.Invoke(this, EventArgs.Empty);
+            }
 
             machine.A = _k7Byte;
             Set(0x2045, 0);
@@ -571,8 +597,6 @@ namespace nMO5
             // positionne l'octet dans la page 0 du moniteur
             Set(0x2045, octet & 0xFF);
 
-            Led = octet & 0xFF;
-            ShowLed = 10;
             _k7Bit = _k7Bit >> 1;
         }
     }

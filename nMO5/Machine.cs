@@ -54,7 +54,7 @@ namespace nMO5
 
         public void OpenK7(string k7)
         {
-            _mem.SetK7File(k7);
+            _mem.OpenK7(k7);
         }
 
         public void OpenMemo(string path)
