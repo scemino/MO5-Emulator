@@ -123,13 +123,13 @@ namespace MO5Emulator
         [Export("softReset:")]
         private void SoftReset(NSObject sender)
         {
-            Machine.ResetSoft();
+            Machine.SotReset();
         }
 
         [Export("hardReset:")]
         private void HardReset(NSObject sender)
         {
-            Machine.ResetHard();
+            Machine.HardReset();
         }
 
         [Export("saveState:")]

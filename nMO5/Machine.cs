@@ -11,12 +11,17 @@ namespace nMO5
         East = 8,
     }
 
-    public class Machine
+    public interface IMachine
+    {
+        int Iniln();
+        int Initn();
+    }
+
+    public class Machine: IMachine
     {
         private readonly Memory _mem;
         private readonly M6809 _cpu;
         private readonly Keyboard _keyboard;
-        private bool _irq;
         private FileStream _fPrinter;
         private int _k7Bit;
         private int _k7Byte;
@@ -24,6 +29,8 @@ namespace nMO5
         private long _index;
         private Stream _k7FileStream;
         private Stream _fd;
+        private int _videoLineCycle;
+        private int _videoLineNumber;
 
         private bool IsFileOpened => _k7FileStream != null;
         public string K7Path => (_k7FileStream as FileStream)?.Name;
@@ -46,7 +53,7 @@ namespace nMO5
 
         public Machine(ISound sound)
         {
-            _mem = new Memory();
+            _mem = new Memory(this);
             Sound = sound;
             _cpu = new M6809(_mem, sound);
             Screen = new Screen(_mem);
@@ -68,7 +75,7 @@ namespace nMO5
         public void Step()
         {
             FrameCount++;
-            FullSpeed();
+            FetchUntil(20000);
             Stepping?.Invoke(this, EventArgs.Empty);
         }
 
@@ -117,14 +124,16 @@ namespace nMO5
         }
 
         // soft reset method ("reinit prog" button on original MO5) 
-        public void ResetSoft()
+        public void SotReset()
         {
             _cpu.Reset();
         }
 
         // hard reset (switch off and on)
-        public void ResetHard()
+        public void HardReset()
         {
+            _videoLineCycle = 0;
+            _videoLineNumber = 0;
             for (var i = 0x2000; i < 0x3000; i++)
             {
                 _mem.Set(i, 0);
@@ -302,43 +311,6 @@ namespace nMO5
             _k7Bit = _k7Bit >> 1;
         }
 
-        // the emulator main loop
-        private void FullSpeed()
-        {
-            _mem.Set(0xA7E7, 0x00);
-            // 3.9 ms haut écran (+0.3 irq)
-            if (_irq)
-            {
-                _irq = false;
-                FetchUntil(3800);
-            }
-            else
-            {
-                FetchUntil(4100);
-            }
-
-            // 13ms fenetre
-            _mem.Set(0xA7E7, 0x80);
-            FetchUntil(13100);
-
-            _mem.Set(0xA7E7, 0x00);
-            FetchUntil(2800);
-
-            if ((_mem.Crb & 0x01) == 0x01)
-            {
-                _irq = true;
-                _mem.Crb |= 0x80;
-                _mem.Set(0xA7C3, _mem.Crb);
-                var cc = _cpu.ReadCc();
-                if ((cc & 0x10) == 0)
-                    _cpu.Irq();
-                // 300 cycles sous interrupt
-                FetchUntil(300);
-                _mem.Crb &= 0x7F;
-                _mem.Set(0xA7C3, _mem.Crb);
-            }
-        }
-
         private void FetchUntil(int clock)
         {
             var c = 0;
@@ -348,19 +320,42 @@ namespace nMO5
                 if (result < 0)
                 {
                     FetchUnknownOpCode(-result);
-                    c += 64;
-                    continue;
+                    result = 64;
                 }
                 c += result;
+                _videoLineCycle += result;
+                // wait for end of line
+                if (_videoLineCycle < 64) continue;
+                _videoLineCycle -= 64;
+                _videoLineNumber++;
+                // wait end of frame
+                if (_videoLineNumber < 312) continue;
+                _videoLineNumber -= 312;
+                _cpu.Irq();
             }
+        }
+
+        public int Iniln()
+        {
+            if (_videoLineCycle < 23) return 0; 
+            return 0x20;
+        }
+
+        public int Initn()
+        {
+            if (_videoLineNumber < 56) return 0;
+            if (_videoLineNumber > 255) return 0;
+            if (_videoLineNumber == 56 && _videoLineCycle < 24) return 0;
+            if (_videoLineNumber == 255 && _videoLineCycle > 62) return 0;
+            return 0x80;
         }
 
         private void FetchUnknownOpCode(int opcode)
         {
+            // thanks to D.Coulom for the next instructions
+            // used by his emulator dcmoto
             switch (opcode)
             {
-                // thanks to D.Coulom for the next instructions
-                // used by his emulator dcmoto
                 case 0x11EC:
                     // lecture bit cassette
                     ReadBit(Cpu);

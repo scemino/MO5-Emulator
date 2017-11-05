@@ -27,7 +27,6 @@ namespace nMO5
         private readonly int[][] _mem;
 
         // I/O ports
-        public int Crb;
         private readonly int[] _ports;
 
         // Cartridge
@@ -37,6 +36,7 @@ namespace nMO5
         private byte[] _car;
 
         private readonly byte[] _floppyRom;
+        private IMachine _machine;
 
         public int SoundMem { get; private set; }
 
@@ -62,8 +62,9 @@ namespace nMO5
             }
         }
 
-        public Memory()
+        public Memory(IMachine machine)
         {
+            _machine = machine;
             if (File.Exists("./bios/cd90-640.rom"))
             {
                 _floppyRom = File.ReadAllBytes("./bios/cd90-640.rom");
@@ -96,7 +97,6 @@ namespace nMO5
                 }
             }
             bw.Write(_mapper[0] != 0);
-            bw.Write(Crb);
             for (int i = 0; i < _ports.Length; i++)
             {
                 bw.Write(_ports[i]);
@@ -125,7 +125,6 @@ namespace nMO5
                 _mapper[0] = 0;
                 _mapper[1] = 1;
             }
-            Crb = br.ReadInt32();
             for (int i = 0; i < _ports.Length; i++)
             {
                 _ports[i] = br.ReadInt32();
@@ -158,7 +157,7 @@ namespace nMO5
                         case 0xA7C2:
                             return _ports[2];
                         case 0xA7C3:
-                            return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
+                            return _ports[3] | ~_machine.Initn();
                         case 0xA7CB:
                             return (_carflags & 0x3F) | ((_carflags & 0x80) >> 1) | ((_carflags & 0x40) << 1);
                         case 0xA7CC:
@@ -168,10 +167,10 @@ namespace nMO5
                         case 0xA7CE:
                             return 4;
                         case 0xA7D8:
-                            return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
+                            return ~_machine.Initn();
                         case 0xA7E1: return 0xFF; //0 means printer error #53
-                        case 0xA7E6: return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
-                        case 0xA7E7: return _mem[_mapper[page]][address & 0xFFF] & 0xFF;
+                        case 0xA7E6: return _machine.Iniln() << 1;
+                        case 0xA7E7: return _machine.Initn();
                         default:
                             if (address >= 0xA7CF && address < 0xA800)
                             {
@@ -320,7 +319,6 @@ namespace nMO5
         {
             _carflags &= 0xEC;
             LoadRom();
-            Crb = 0x00;
 
             _mem[0xA + 2][0x7CC] = 0xFF;
             _mem[0xA + 2][0x7CD] = 0xFF;
@@ -396,8 +394,6 @@ namespace nMO5
                     break;
                 case 0xA7C3:
                     _ports[3] = op & 0x3F;
-                    Crb = (Crb & 0xD0) | (op & 0x3F);
-                    _mem[0xA + 2][0x7C3] = Crb;
                     break;
                 case 0xA7CB:
                     _carflags = op;

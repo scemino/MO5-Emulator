@@ -18,12 +18,12 @@ namespace MO5Emulator.Scripting
 
         public void Poweron()
         {
-            _machine.ResetHard();
+            _machine.HardReset();
         }
 
 		public void Softreset()
 		{
-            _machine.ResetSoft();
+            _machine.SotReset();
 		}
 
 		public void Frameadvance()
