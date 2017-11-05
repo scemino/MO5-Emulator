@@ -35,6 +35,9 @@ namespace nMO5
         public Memory Memory => _mem;
         public Keyboard Keyboard => _keyboard;
         public M6809 Cpu => _cpu;
+        public Screen Screen { get; }
+        public ISound Sound { get; }
+
         public int FrameCount { get; private set; }
         public bool IsScriptRunning { get; set; }
 
@@ -44,7 +47,9 @@ namespace nMO5
         public Machine(ISound sound)
         {
             _mem = new Memory();
+            Sound = sound;
             _cpu = new M6809(_mem, sound);
+            Screen = new Screen(_mem);
             _keyboard = new Keyboard(_mem);
         }
 

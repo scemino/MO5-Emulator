@@ -14,10 +14,8 @@ namespace MO5Emulator
         private int id;
         private Color[] _colors;
 
-        AppDelegate AppDelegate => (AppDelegate)NSApplication.SharedApplication.Delegate;
+        private AppDelegate AppDelegate => (AppDelegate)NSApplication.SharedApplication.Delegate;
         public Machine Machine => AppDelegate.Machine;
-        public ISound Sound => AppDelegate.Sound;
-        public Screen Screen => AppDelegate.Screen;
 
         public GameView(CGRect frame)
         : base(frame)
@@ -54,7 +52,7 @@ namespace MO5Emulator
             {
                 Machine.Step();
             }
-            (Sound as Sound)?.UpdateQueue();
+            (Machine.Sound as Sound)?.UpdateQueue();
 
             base.OnUpdateFrame(e);
         }
@@ -185,7 +183,7 @@ namespace MO5Emulator
 
         protected override void OnRenderFrame(OpenTK.FrameEventArgs e)
         {
-            Screen.Update(_colors);
+            Machine.Screen.Update(_colors);
             GL.BindTexture(TextureTarget.Texture2D, id);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
                           Screen.Width, Screen.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgba,

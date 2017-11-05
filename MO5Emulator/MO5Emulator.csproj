@@ -163,6 +163,7 @@
       <DependentUpon>SearchCheatViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Cheat\MemorySearchSession.cs" />
+    <Compile Include="LUAManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />

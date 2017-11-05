@@ -1,11 +1,9 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading;
 using AppKit;
 using Foundation;
 using MO5Emulator.Audio;
-using MO5Emulator.Scripting;
 using MoonSharp.Interpreter;
 using nMO5;
 
@@ -14,51 +12,16 @@ namespace MO5Emulator
     [Register("AppDelegate")]
     public partial class AppDelegate : NSApplicationDelegate
     {
-        private ISound _sound;
         private Machine _machine;
-        private Thread _scriptThread;
-        private Script _script;
-        private Screen _screen;
+        private LUAManager _luaManager;
 
         public Machine Machine => _machine;
-        public ISound Sound => _sound;
-        public Screen Screen => _screen;
 
         public AppDelegate()
         {
-            _sound = new DummySound();
-            _machine = new Machine(_sound);
-            _screen = new Screen(Machine.Memory);
-
-            UserData.RegisterType<LuaMemory>();
-            UserData.RegisterType<LuaGui>();
-            UserData.RegisterType<LuaColor>();
-            UserData.RegisterType<LuaEmu>();
-            UserData.RegisterType<LuaSaveSlot>();
-            UserData.RegisterType<LuaSaveState>();
-            UserData.RegisterType<LuaInput>();
-            UserData.RegisterType<LuaDebugger>();
-
-            Script.GlobalOptions.CustomConverters
-                  .SetScriptToClrCustomConversion(DataType.String,
-                                                  typeof(LuaColor),
-                                                  (DynValue arg) => LuaColor.Parse(arg.String));
-            Script.GlobalOptions.CustomConverters
-                  .SetScriptToClrCustomConversion(DataType.Table,
-                                                  typeof(LuaColor),
-                                                  (DynValue arg) => LuaColor.Parse(arg.Table));
-            Script.GlobalOptions.CustomConverters
-                  .SetScriptToClrCustomConversion(DataType.Number,
-                                                  typeof(LuaColor),
-                                                  (DynValue arg) => LuaColor.Parse((int)arg.Number));
-
-            _script = new Script();
-            _script.Globals["memory"] = new LuaMemory(Machine);
-            _script.Globals["gui"] = new LuaGui(Screen);
-            _script.Globals["emu"] = new LuaEmu(Machine);
-            _script.Globals["savestate"] = new LuaSaveState(Machine);
-            _script.Globals["input"] = new LuaInput(Machine);
-            _script.Globals["debugger"] = new LuaDebugger(Machine);
+            _machine = new Machine(new DummySound());
+            _luaManager = new LUAManager(_machine);
+            _luaManager.ScriptError += OnScriptError;
         }
 
         public override bool ApplicationShouldTerminateAfterLastWindowClosed(NSApplication sender)
@@ -96,7 +59,7 @@ namespace MO5Emulator
 
             if (dlg.RunModal() == 1)
             {
-                LoadLUAScript(dlg.Url.Path);
+                _luaManager.LoadLUAScript(dlg.Url.Path);
             }
         }
 
@@ -112,7 +75,7 @@ namespace MO5Emulator
 
         private NSBitmapImageRep CreateImageRep()
         {
-            var pixels = _screen.Pixels;
+            var pixels = Machine.Screen.Pixels;
             var pitch = Screen.Width * 4;
             var data = new byte[Screen.Width * Screen.Height * 4];
             for (int x = 0; x < Screen.Width; x++)
@@ -212,34 +175,14 @@ namespace MO5Emulator
             return Path.ChangeExtension(Machine.K7Path, ".m5s");
         }
 
-        private void LoadLUAScript(string file)
+        private void OnScriptError(object sender, Exception e)
         {
-            if (_scriptThread != null)
-            {
-                _scriptThread.Abort();
-                Machine.IsScriptRunning = false;
-            }
-            _scriptThread = new Thread(OnScriptRun)
-            {
-                IsBackground = true
-            };
-            Machine.IsScriptRunning = true;
-            _scriptThread.Start(file);
-        }
-
-        private void OnScriptRun(object parameter)
-        {
-            var file = (string)parameter;
-            try
-            {
-                _script.DoFile(file);
-            }
-            catch (InterpreterException e)
+            if (e is InterpreterException interpreterException)
             {
                 InvokeOnMainThread(() =>
                 {
                     var msgFormat = NSBundle.MainBundle.LocalizedString("An error occured in the LUA script!\n{0}.", null);
-                    var message = string.Format(msgFormat, e.DecoratedMessage);
+                    var message = string.Format(msgFormat, interpreterException.DecoratedMessage);
                     var alert = new NSAlert
                     {
                         AlertStyle = NSAlertStyle.Critical,
@@ -247,10 +190,10 @@ namespace MO5Emulator
                         MessageText = NSBundle.MainBundle.LocalizedString("Oops", null),
                     };
                     alert.RunModal();
-                    Machine.IsScriptRunning = false;
+                    _machine.IsScriptRunning = false;
                 });
             }
-            catch (Exception e)
+            else
             {
                 InvokeOnMainThread(() =>
                 {

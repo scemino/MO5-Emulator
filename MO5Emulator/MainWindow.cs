@@ -40,25 +40,28 @@ namespace MO5Emulator
 
         private void UpdateTitle()
         {
-            // K7 ?
-            if (!string.IsNullOrEmpty(Game.Machine.K7Path))
+            InvokeOnMainThread(() =>
             {
-                Title = string.Format("{0} [{1}/{2}]",
-                                      Path.GetFileNameWithoutExtension(Game.Machine.K7Path),
-                                      Game.Machine.Index, Game.Machine.IndexMax);
-                return;
-            }
-            // Memo ?
-            if (!string.IsNullOrEmpty(Game.Machine.MemoPath))
-            {
-                Title = Path.GetFileNameWithoutExtension(Game.Machine.MemoPath);
-                return;
-            }
-            // Disk ?
-            if (!string.IsNullOrEmpty(Game.Machine.DiskPath))
-            {
-                Title = Path.GetFileNameWithoutExtension(Game.Machine.DiskPath);
-            }
+                // K7 ?
+                if (!string.IsNullOrEmpty(Game.Machine.K7Path))
+                {
+                    Title = string.Format("{0} [{1}/{2}]",
+                                          Path.GetFileNameWithoutExtension(Game.Machine.K7Path),
+                                          Game.Machine.Index, Game.Machine.IndexMax);
+                    return;
+                }
+                // Memo ?
+                if (!string.IsNullOrEmpty(Game.Machine.MemoPath))
+                {
+                    Title = Path.GetFileNameWithoutExtension(Game.Machine.MemoPath);
+                    return;
+                }
+                // Disk ?
+                if (!string.IsNullOrEmpty(Game.Machine.DiskPath))
+                {
+                    Title = Path.GetFileNameWithoutExtension(Game.Machine.DiskPath);
+                }
+            });
         }
 
         public override void FlagsChanged(NSEvent theEvent)
