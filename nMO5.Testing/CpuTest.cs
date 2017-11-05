@@ -5,9 +5,9 @@ namespace nMO5.Testing
 {
     public class CpuTest
     {
-        private Mock<IMemory> _mockMem;
-        private Mock<ISound> _mockSound;
-        private M6809 _cpu;
+        private readonly Mock<IMemory> _mockMem;
+        private readonly Mock<ISound> _mockSound;
+        private readonly M6809 _cpu;
 
         public CpuTest()
         {
@@ -22,7 +22,7 @@ namespace nMO5.Testing
             // LDA
             SetupOpcodeToExecute(0x86);
             _mockMem.Setup(o => o.Read(1)).Returns(42);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 42, d:42<<8, pc: 2);
         }
 
@@ -33,7 +33,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0x96);
             _mockMem.Setup(o => o.Read(1)).Returns(42);
             _mockMem.Setup(o => o.Read(42)).Returns(0xBE);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 0xBE, d: 0xBE << 8, pc: 2);
         }
 
@@ -44,7 +44,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xB6);
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
             _mockMem.Setup(o => o.Read(0xBEEF)).Returns(42);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 42, d: 42 << 8, pc: 3);
         }
 
@@ -55,7 +55,7 @@ namespace nMO5.Testing
             // LDB
             SetupOpcodeToExecute(0xC6);
             _mockMem.Setup(o => o.Read(1)).Returns(42);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(b: 42, d: 42, pc: 2);
         }
 
@@ -66,7 +66,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xD6);
             _mockMem.Setup(o => o.Read(1)).Returns(42);
             _mockMem.Setup(o => o.Read(42)).Returns(0xBE);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(b: 0xBE, d: 0xBE, pc: 2);
         }
 
@@ -77,7 +77,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xF6);
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
             _mockMem.Setup(o => o.Read(0xBEEF)).Returns(42);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(b: 42, d: 42, pc: 3);
         }
 
@@ -88,7 +88,7 @@ namespace nMO5.Testing
             // LDD
             SetupOpcodeToExecute(0xCC);
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 0xBE, b: 0xEF, d: 0xBEEF, pc: 3);
         }
 
@@ -99,7 +99,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xDC);
             _mockMem.Setup(o => o.Read(1)).Returns(42);
             _mockMem.Setup(o => o.Read16(42)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 0xBE, b: 0xEF, d: 0xBEEF, pc: 2);
         }
 
@@ -110,7 +110,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xFC);
             _mockMem.Setup(o => o.Read16(1)).Returns(0xDEAD);
             _mockMem.Setup(o => o.Read16(0xDEAD)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 0xBE, b: 0xEF, d: 0xBEEF, pc: 3);
         }
 
@@ -121,7 +121,7 @@ namespace nMO5.Testing
             // LDU
             SetupOpcodeToExecute(0xCE);
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(u: 0xBEEF, pc: 3);
         }
 
@@ -132,7 +132,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xDE);
             _mockMem.Setup(o => o.Read(1)).Returns(42);
             _mockMem.Setup(o => o.Read16(42)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(u: 0xBEEF, pc: 2);
         }
 
@@ -143,7 +143,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xFE);
             _mockMem.Setup(o => o.Read16(1)).Returns(0xDEAD);
             _mockMem.Setup(o => o.Read16(0xDEAD)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(u: 0xBEEF, pc: 3);
         }
 
@@ -154,7 +154,7 @@ namespace nMO5.Testing
             // LDX
             SetupOpcodeToExecute(0x8E);
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(x: 0xBEEF, pc: 3);
         }
 
@@ -165,7 +165,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0x9E);
             _mockMem.Setup(o => o.Read(1)).Returns(42);
             _mockMem.Setup(o => o.Read16(42)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(x: 0xBEEF, pc: 2);
         }
 
@@ -176,7 +176,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xBE);
             _mockMem.Setup(o => o.Read16(1)).Returns(0xDEAD);
             _mockMem.Setup(o => o.Read16(0xDEAD)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(x: 0xBEEF, pc: 3);
         }
 
@@ -188,7 +188,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0x97);
             _cpu.A = 42;
             _mockMem.Setup(o => o.Read(1)).Returns(0xBE);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 42, d: 42 << 8, pc: 2);
             _mockMem.Verify(o => o.Write(0xBE, 42));
         }
@@ -200,7 +200,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xB7);
             _cpu.A = 42;
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 42, d: 42 << 8, pc: 3);
             _mockMem.Verify(o => o.Write(0xBEEF, 42));
         }
@@ -213,7 +213,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xD7);
             _cpu.B = 42;
             _mockMem.Setup(o => o.Read(1)).Returns(0xBE);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(b: 42, d: 42, pc: 2);
             _mockMem.Verify(o => o.Write(0xBE, 42));
         }
@@ -225,7 +225,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xF7);
             _cpu.B = 42;
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(b: 42, d: 42, pc: 3);
             _mockMem.Verify(o => o.Write(0xBEEF, 42));
         }
@@ -238,7 +238,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xDD);
             _cpu.D = 0xDEAD;
             _mockMem.Setup(o => o.Read(1)).Returns(0xBE);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 0xDE, b: 0xAD, d: 0xDEAD, pc: 2);
             _mockMem.Verify(o => o.Write16(0xBE, 0xDEAD));
         }
@@ -250,7 +250,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xFD);
             _cpu.D = 0xDEAD;
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(a: 0xDE, b: 0xAD, d: 0xDEAD, pc: 3);
             _mockMem.Verify(o => o.Write16(0xBEEF, 0xDEAD));
         }
@@ -263,7 +263,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xDF);
             _cpu.U = 0xDEAD;
             _mockMem.Setup(o => o.Read(1)).Returns(0xBE);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(u: 0xDEAD, pc: 2);
             _mockMem.Verify(o => o.Write16(0xBE, 0xDEAD));
         }
@@ -275,7 +275,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xFF);
             _cpu.U = 0xDEAD;
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(u: 0xDEAD, pc: 3);
             _mockMem.Verify(o => o.Write16(0xBEEF, 0xDEAD));
         }
@@ -288,7 +288,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0x9F);
             _cpu.X = 0xDEAD;
             _mockMem.Setup(o => o.Read(1)).Returns(0xBE);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(x: 0xDEAD, pc: 2);
             _mockMem.Verify(o => o.Write16(0xBE, 0xDEAD));
         }
@@ -300,7 +300,7 @@ namespace nMO5.Testing
             SetupOpcodeToExecute(0xBF);
             _cpu.X = 0xDEAD;
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(x: 0xDEAD, pc: 3);
             _mockMem.Verify(o => o.Write16(0xBEEF, 0xDEAD));
         }
@@ -311,7 +311,7 @@ namespace nMO5.Testing
             // CLRA
             SetupOpcodeToExecute(0x4F);
             _cpu.A = 42;
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(pc: 1);
         }
 
@@ -321,7 +321,7 @@ namespace nMO5.Testing
             // CLRB
             SetupOpcodeToExecute(0x5F);
             _cpu.B = 42;
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(pc: 1);
         }
 
@@ -331,7 +331,7 @@ namespace nMO5.Testing
             // CLR
             SetupOpcodeToExecute(0x0F);
             _mockMem.Setup(o => o.Read(1)).Returns(0xBE);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(pc: 2);
             _mockMem.Verify(o => o.Write(0xBE, 0));
         }
@@ -342,7 +342,7 @@ namespace nMO5.Testing
             // CLR
             SetupOpcodeToExecute(0x7F);
             _mockMem.Setup(o => o.Read16(1)).Returns(0xBEEF);
-            var clock = _cpu.FetchUntil(1);
+            var clock = _cpu.Fetch();
             CheckRegisters(pc: 3);
             _mockMem.Verify(o => o.Write(0xBEEF, 0));
         }

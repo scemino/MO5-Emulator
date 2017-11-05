@@ -27,7 +27,7 @@ namespace MO5Emulator
             ContentView = Game;
 
             UpdateTitle();
-            Game.Machine.Memory.IndexChanged += OnIndexChanged;
+            Game.Machine.IndexChanged += OnIndexChanged;
 
             // Run the game at 60 updates per second
             Game.Run(60.0);
@@ -41,23 +41,23 @@ namespace MO5Emulator
         private void UpdateTitle()
         {
             // K7 ?
-            if (!string.IsNullOrEmpty(Game.Machine.Memory.K7Path))
+            if (!string.IsNullOrEmpty(Game.Machine.K7Path))
             {
                 Title = string.Format("{0} [{1}/{2}]",
-                                      Path.GetFileNameWithoutExtension(Game.Machine.Memory.K7Path),
-                                      Game.Machine.Memory.Index, Game.Machine.Memory.IndexMax);
+                                      Path.GetFileNameWithoutExtension(Game.Machine.K7Path),
+                                      Game.Machine.Index, Game.Machine.IndexMax);
                 return;
             }
             // Memo ?
-            if (!string.IsNullOrEmpty(Game.Machine.Memory.MemoPath))
+            if (!string.IsNullOrEmpty(Game.Machine.MemoPath))
             {
-                Title = Path.GetFileNameWithoutExtension(Game.Machine.Memory.MemoPath);
+                Title = Path.GetFileNameWithoutExtension(Game.Machine.MemoPath);
                 return;
             }
             // Disk ?
-            if (!string.IsNullOrEmpty(Game.Machine.Memory.DiskPath))
+            if (!string.IsNullOrEmpty(Game.Machine.DiskPath))
             {
-                Title = Path.GetFileNameWithoutExtension(Game.Machine.Memory.DiskPath);
+                Title = Path.GetFileNameWithoutExtension(Game.Machine.DiskPath);
             }
         }
 

@@ -72,7 +72,7 @@ namespace MO5Emulator.Scripting
 		{
             if (slot == null)
                 return;
-            if (slot.Stream == null && _machine.Memory.K7Path != null)
+            if (slot.Stream == null && _machine.K7Path != null)
             {
                 var path = GetStateFilePath(slot.Number);
                 if (File.Exists(path))
@@ -100,11 +100,11 @@ namespace MO5Emulator.Scripting
             string path;
             if (slot == 0)
             {
-                path = _machine.Memory.K7Path;
+                path = _machine.K7Path;
             }
             else
             {
-                path = string.Format("{0}{1}", _machine.Memory.K7Path, slot);
+                path = string.Format("{0}{1}", _machine.K7Path, slot);
             }
 			return Path.ChangeExtension(path, ".m5s");
 		}

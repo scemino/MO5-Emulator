@@ -4,7 +4,7 @@ using System.IO;
 namespace nMO5
 {
     [Flags]
-    enum CartridgeType
+    internal enum CartridgeType
     {
         Simple = 0,
         SwitchBank = 1,
@@ -14,15 +14,8 @@ namespace nMO5
     public class Memory : IMemory
     {
         private bool[] _dirty;
-
-        private int _k7Bit;
-        private int _k7Byte;
-
-        private Stream _k7FileStream;
-        private Stream _fd;
-        private bool IsFileOpened => _k7FileStream != null;
         private bool[] _key;
-        private int[] _mapper;
+        private readonly int[] _mapper;
 
         // 0 1          POINT   2
         // 2 3          COLOR   2
@@ -31,11 +24,11 @@ namespace nMO5
         // 12           LINEA   1
         // 13           LINEB   1
         // 14 15 16 17  ROM     4
-        private int[][] _mem;
+        private readonly int[][] _mem;
 
         // I/O ports
         public int Crb;
-        private int[] _ports;
+        private readonly int[] _ports;
 
         // Cartridge
         private CartridgeType _cartype;
@@ -44,8 +37,6 @@ namespace nMO5
         private byte[] _car;
 
         private readonly byte[] _floppyRom;
-        private long _indexMax;
-        private long _index;
 
         public int SoundMem { get; private set; }
 
@@ -60,14 +51,7 @@ namespace nMO5
 
         public bool[] Key => _key;
 
-        public string DiskPath { get; private set; }
-        public string MemoPath { get; private set; }
-        public string K7Path => (_k7FileStream as FileStream)?.Name;
-        public long Index => _index;
-        public long IndexMax => _indexMax;
-
         public event EventHandler<AddressWrittenEventArgs> Written;
-        public event EventHandler IndexChanged;
 
         public int BorderColor
         {
@@ -77,7 +61,6 @@ namespace nMO5
                 return (value >> 1) & 0x0F;
             }
         }
-
 
         public Memory()
         {
@@ -91,7 +74,7 @@ namespace nMO5
             {
                 _mem[j] = new int[0x1000];
             }
-            _mapper = new int[] {
+            _mapper = new[] {
                 0,1,4,5,6,7,8,9,10,11,12,13,14,15,16,17
             };
             _key = new bool[256];
@@ -253,63 +236,16 @@ namespace nMO5
 
         public void RemKey(int i) => _key[i] = false;
 
-        public void OpenK7(string k7)
+        public void OpenMemo(Stream memo)
         {
-            try
-            {
-                EjectAll();
-                _k7FileStream = File.Open(k7, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            _carsize = Math.Min(memo.Length, 0x10000);
+            _car = new byte[_carsize];
+            memo.Read(_car, 0, (int)_carsize);
 
-                _indexMax = _k7FileStream.Length >> 9;
-                _index = 0;
-                IndexChanged?.Invoke(this, EventArgs.Empty);
-
-                _k7FileStream.Seek(0, SeekOrigin.Begin);
-
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine("Error : file is missing " + e);
-                return;
-            }
-
-            _k7Bit = 0;
-            _k7Byte = 0;
-        }
-
-        public void OpenMemo(string path)
-        {
-            using (var memo = File.OpenRead(path))
-            {
-                EjectAll();
-                MemoPath = path;
-                IndexChanged?.Invoke(this, EventArgs.Empty);
-                _carsize = Math.Min(memo.Length, 0x10000);
-                _car = new byte[_carsize];
-                memo.Read(_car, 0, (int)_carsize);
-            }
             _cartype = _carsize > 0x4000 ? CartridgeType.SwitchBank : CartridgeType.Simple; //cartouche > 16 Ko
             _carflags = 4; //cartridge enabled, write disabled, bank 0; 
 
             Reset();
-        }
-
-        public void OpenDisk(string path)
-        {
-            EjectAll();
-            _fd = File.OpenRead(path);
-            DiskPath = path;
-            IndexChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void EjectAll()
-        {
-            _k7FileStream?.Dispose();
-            _k7FileStream = null;
-            MemoPath = null;
-            _fd?.Dispose();
-            _fd = null;
-            DiskPath = null;
         }
 
         public void CloseMemo()
@@ -317,12 +253,7 @@ namespace nMO5
             _carflags = 0;
             LoadRom();
         }
-
-        public void Rewind()
-        {
-            _k7FileStream?.Seek(0, SeekOrigin.Begin);
-        }
-
+        
         private void WriteCore(int address, int value)
         {
             var page = (address & 0xF000) >> 12;
@@ -344,7 +275,6 @@ namespace nMO5
                 if (((_carflags & 8) != 0) && (_cartype == 0))
                 {
                     _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-                    return;
                 }
             }
             else
@@ -487,117 +417,6 @@ namespace nMO5
                     _ports[0x0F] = op;
                     break;
             }
-        }
-
-        public void ReadK7Byte(M6809 machine)
-        {
-            if (!IsFileOpened) return;
-
-            _k7Byte = _k7FileStream.ReadByte();
-            if ((_k7FileStream.Position & 511) == 0)
-            {
-                _index = _k7FileStream.Position >> 9;
-                IndexChanged?.Invoke(this, EventArgs.Empty);
-            }
-
-            machine.A = _k7Byte;
-            Set(0x2045, 0);
-            _k7Bit = 0;
-        }
-
-        public void WriteK7Byte(M6809 machine)
-        {
-            if (!IsFileOpened) return;
-            _k7FileStream.WriteByte((byte)machine.A);
-            Set(0x2045, 0);
-        }
-
-        public void ReadSector()
-        {
-            if (_fd == null)
-            {
-                //TODO: Diskerror(71); 
-                return;
-            }
-            var u = Read(0x2049);
-            if (u > 03)
-            {
-                //Diskerror(53); 
-                return;
-            }
-            var p = Read(0x204A);
-            if (p != 0)
-            {
-                //Diskerror(53); 
-                return;
-            }
-            p = Read(0x204B);
-            if (p > 79)
-            {
-                //Diskerror(53); 
-                return;
-            }
-            var s = Read(0x204C);
-            if ((s == 0) || (s > 16))
-            {
-                //Diskerror(53); 
-                return;
-            }
-            s += 16 * p + 1280 * u;
-            //fseek(ffd, 0, SEEK_END);
-            if ((s << 8) > _fd.Length)
-            {
-                //Diskerror(53); 
-                return;
-            }
-            var buffer = new byte[256];
-            for (var j = 0; j < 256; j++) buffer[j] = 0xe5;
-            _fd.Position = (s - 1) << 8;
-            var i = (Read(0x204F) << 8) + Read(0x2050);
-            if (_fd.Read(buffer, 0, 256) == 0)
-            {
-                //Diskerror(53); 
-                return;
-            }
-            for (var j = 0; j < 256; j++)
-            {
-                Write(i++, buffer[j]);
-            }
-        }
-
-        public void ReadBit(M6809 machine)
-        {
-            if (!IsFileOpened) return;
-
-            // need to read 1 byte ?
-            if (_k7Bit == 0x00)
-            {
-                try
-                {
-                    _k7Byte = _k7FileStream.ReadByte();
-                }
-                catch (Exception)
-                {
-                }
-
-                _k7Bit = 0x80;
-            }
-
-            var octet = Read(0x2045) << 1;
-            if ((_k7Byte & _k7Bit) == 0)
-            {
-                machine.A = 0;
-            }
-            else
-            {
-                octet |= 0x01;
-                machine.A = 0xFF;
-
-            }
-            // positionne l'octet dans la page 0 du moniteur
-            Set(0x2045, octet & 0xFF);
-
-            _k7Bit = _k7Bit >> 1;
         }
     }
 }

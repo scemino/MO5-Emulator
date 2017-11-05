@@ -1,14 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using static nMO5.Util;
 
 namespace nMO5
 {
     public class M6809
     {
-        public event EventHandler<OpcodeExecutedEventArgs> OpcodeExecuted;
-
         private const int SoundSize = 1024;
 
         private readonly IMemory _mem;
@@ -20,7 +17,7 @@ namespace nMO5
         private readonly ISound _play;
 
 		private int _clock;
-		private int _instructionsCount;
+        private int _instructionsCount;
 
         /// <summary>
         /// Program counter.
@@ -76,7 +73,7 @@ namespace nMO5
         }
 
 		public int CyclesCount => _clock;
-		public int InstructionsCount => _instructionsCount;
+        public int InstructionsCount { get => _instructionsCount; }
 
         // fast CC bits (as ints) 
         private int _res;
@@ -87,7 +84,8 @@ namespace nMO5
         private int _h1;
         private int _h2;
         private int _ccrest;
-        private FileStream _fPrinter;
+
+        public event EventHandler<OpcodeExecutedEventArgs> OpcodeExecuted;
 
         public M6809(IMemory mem, ISound play)
         {
@@ -692,7 +690,7 @@ namespace nMO5
         }
 
         // calculate CC fast bits from CC register
-        private void Setcc(int i)
+        public void Setcc(int i)
         {
             _m1 = _m2 = 0;
             _res = ((i & 1) << 8) | (4 - (i & 4));
@@ -2473,15 +2471,9 @@ namespace nMO5
             _clock += 20;
         }
 
-        public int FetchUntil(int clock)
+        public int Fetch()
         {
-            while (_clock < clock) Fetch();
-            _clock -= clock;
-            return _clock;
-        }
-
-        private void Fetch()
-        {
+            int clock = _clock;
             int pc = Pc;
             int opcode = _mem.Read(Pc);
             int opcode0X10 = 0;
@@ -3393,11 +3385,11 @@ namespace nMO5
                         case 0x29:
                             Lbvs();
                             break;
-
                         default:
-                            Console.Error.WriteLine("opcode 10 {0:X2} not implemented", opcode0X10);
-                            Console.Error.WriteLine(PrintState());
-                            break;
+                            opcode = opcode << 8 | opcode0X10;
+                            OnOpcodeExecuted(pc, opcode);
+                            _instructionsCount++;
+                            return -opcode;
                     } // of case opcode0x10
                     break;
                 case 0x11:
@@ -3429,111 +3421,25 @@ namespace nMO5
                         case 0xA3:
                             Cmp16(U, Indexe(), 7);
                             break;
-                        // thanks to D.Coulom for the next instructions
-                        // used by his emulator dcmoto
-                        case 0xEC:
-                            // lecture bit cassette
-                            _mem.ReadBit(this);
-                            _clock += 64;
-                            break;
-                        case 0xF1: // lecture octet cassette (pour 6809)
-                        case 0xED: // lecture octet cassette (pour compatibilite 6309)
-                            _mem.ReadK7Byte(this);
-                            _clock += 64;
-                            break;
-                        case 0xF2: // ecriture octet cassette(pour 6809)
-                        case 0xEE: // ecriture octet cassette(pour compatibilite 6309)
-                            _mem.WriteK7Byte(this);
-                            _clock += 64;
-                            break;
-                        case 0xF3: // initialisation controleur disquette
-                            _clock += 64;
-                            break;
-                        // 0xF4: formatage disquette
-                        case 0xF5:
-                            _mem.ReadSector();
-                            _clock += 64;
-                            break;
-                        // TODO:
-                        // 0xF8: lecture position souris
-                        // 0xF9: lecture des boutons de la souris
-                        case 0xFA: // envoi d'un octet a l'imprimante
-                            Print();
-                            break;
-                        // 0xFC: lecture du clavier TO8
-                        // 0xFD: ecriture vers clavier TO8
-                        // 0xFE: emission commande nanoreseau
-                        case 0xFF: // lecture coordonnees crayon optique
-                            ReadPenXy();
-                            _clock += 64;
-                            break;
                         default:
-                            Console.Error.WriteLine("opcode 11 {0:X2} not implemented", opcode0X11);
-                            Console.Error.WriteLine(PrintState());
-                            break;
+                            opcode = opcode << 8 | opcode0X11;
+                            OnOpcodeExecuted(pc, opcode);
+                            _instructionsCount++;
+                            return -opcode;
                     } // of case opcode 0x11 
                     break;
 
                 default:
-                    Console.Error.WriteLine("opcode {0:X2} not implemented", opcode);
-                    Console.Error.WriteLine(PrintState());
-                    break;
+                    return -opcode;
             }
-
-            int op = opcode;
-            if (opcode == 0x10)
-            {
-                op = opcode << 8 | opcode0X10;
-            }
-            else if (opcode == 0x11)
-            {
-                op = opcode << 8 | opcode0X11;
-            }
-            else
-            {
-                op = opcode;
-            }
-            OnOpcodeExecuted(pc, op);
+            OnOpcodeExecuted(pc, opcode);
             _instructionsCount++;
-        }
-
-        private void Print()
-        {
-            if (_fPrinter == null)
-            {
-                _fPrinter = File.OpenWrite("mo5-printer.txt");
-            }
-            _fPrinter.WriteByte((byte)B);
-            Cc &= 0xFE;
-            Setcc(Cc);
+            return _clock - clock;
         }
 
         private void OnOpcodeExecuted(int pc, int opcode)
         {
             OpcodeExecuted?.Invoke(this, new OpcodeExecutedEventArgs(pc, opcode));
-        }
-
-        private void ReadPenXy()
-        {
-            if ((_mem.LightPenX < 0) || (_mem.LightPenX >= 320)) { Cc |= 1; Setcc(Cc); return; }
-            if ((_mem.LightPenY < 0) || (_mem.LightPenY >= 200)) { Cc |= 1; Setcc(Cc); return; }
-            _mem.Write16(S + 6, _mem.LightPenX);
-            _mem.Write16(S + 8, _mem.LightPenY);
-            Cc &= 0xFE;
-            Setcc(Cc);
-        }
-
-        // DISASSEMBLE/DEBUG PART
-        private string PrintState()
-        {
-            Cc = Getcc();
-            var s = new StringBuilder();
-            s.AppendFormat(" A=  {0:X2}  B=  {1:X2}", A, B).AppendLine();
-            s.AppendFormat(" X={0:X4}  Y={1:X4}", X, Y).AppendLine();
-            s.AppendFormat("PC={0:X4} DP={1:X4}", Pc, Dp).AppendLine();
-            s.AppendFormat(" U={0:X4}  S={1:X4}", U, S).AppendLine();
-            s.AppendFormat(" CC=  {0:X2}", Cc);
-            return s.ToString();
         }
     } // of class M6809
 }

@@ -172,7 +172,7 @@ namespace MO5Emulator
         [Export("saveState:")]
         private void SaveState(NSObject sender)
         {
-            if (Machine.Memory.K7Path == null) return;
+            if (Machine.K7Path == null) return;
             var path = GetStateFilePath();
             using (var stream = File.OpenWrite(path))
             {
@@ -183,7 +183,7 @@ namespace MO5Emulator
         [Export("restoreState:")]
         private void RestoreState(NSObject sender)
         {
-            if (Machine.Memory.K7Path == null) return;
+            if (Machine.K7Path == null) return;
             var path = GetStateFilePath();
             if (!File.Exists(path)) return;
 
@@ -199,9 +199,9 @@ namespace MO5Emulator
             switch (item.Tag)
             {
                 case 1: // save state
-                    return Machine.Memory.K7Path != null;
+                    return Machine.K7Path != null;
                 case 2: // restore state
-                    return Machine.Memory.K7Path != null && File.Exists(GetStateFilePath());
+                    return Machine.K7Path != null && File.Exists(GetStateFilePath());
             }
 
             return true;
@@ -209,7 +209,7 @@ namespace MO5Emulator
 
         private string GetStateFilePath()
         {
-            return Path.ChangeExtension(Machine.Memory.K7Path, ".m5s");
+            return Path.ChangeExtension(Machine.K7Path, ".m5s");
         }
 
         private void LoadLUAScript(string file)

@@ -8,12 +8,8 @@
 
         int Read(int address);
         int Read16(int address);
-        void ReadK7Byte(M6809 machine);
-        void WriteK7Byte(M6809 machine);
-        void ReadBit(M6809 machine);
 
         void Write(int address, int value);
         void Write16(int address, int value);
-        void ReadSector();
     }
 }
