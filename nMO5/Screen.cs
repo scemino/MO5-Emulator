@@ -35,9 +35,9 @@ namespace nMO5
 
         private readonly Color[] _pixels;
 
-        private Memory _mem;
+        private IMemory _mem;
 
-        public Screen(Memory memory)
+        public Screen(IMemory memory)
         {
             _pixels = new Color[Width * Height];
             _mem = memory;

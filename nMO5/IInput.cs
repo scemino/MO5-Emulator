@@ -12,23 +12,17 @@
         Shift = 0x70, Basic = 0x72
     }
 
-    public class Keyboard
+    public interface IInput
     {
-        private readonly Memory _mem;
+        bool LightPenClick { get; }
+        int LightPenX { get; }
+        int LightPenY { get; }
 
-        internal Keyboard(Memory mem)
-        {
-            _mem = mem;
-        }
+        bool IsKeyPressed(Mo5Key key);
 
-        public void KeyPressed(Mo5Key key)
-        {
-            _mem.SetKey((int)key);
-        }
-
-        public void KeyReleased(Mo5Key key)
-        {
-            _mem.RemKey((int)key);
-        }
+        JoystickOrientation Joystick1Orientation { get; }
+        JoystickOrientation Joystick2Orientation { get; }
+        bool Joystick1ButtonPressed { get; }
+        bool Joystick2ButtonPressed { get; }
     }
 }

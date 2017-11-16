@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using AppKit;
 using Foundation;
 using MO5Emulator.Audio;
+using MO5Emulator.Input;
 using MoonSharp.Interpreter;
 using nMO5;
 
@@ -19,7 +20,12 @@ namespace MO5Emulator
 
         public AppDelegate()
         {
-            _machine = new Machine(new DummySound());
+            var sound = new DummySound();
+            var cpu = new M6809(sound);
+            var input = new CocoaInput();
+            var mem = new Memory(input);
+            _machine = new Machine(sound, cpu, input, mem);
+            mem.Machine = _machine;
             _luaManager = new LUAManager(_machine);
             _luaManager.ScriptError += OnScriptError;
         }

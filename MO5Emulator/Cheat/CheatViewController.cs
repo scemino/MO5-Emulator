@@ -10,7 +10,7 @@ namespace MO5Emulator
     public partial class CheatViewController : NSViewController
     {
         AppDelegate AppDelegate => (AppDelegate)NSApplication.SharedApplication.Delegate;
-        private Memory Memory => AppDelegate.Machine.Memory;
+        private IMemory Memory => AppDelegate.Machine.Memory;
 
 		private NSMutableArray _cheats = new NSMutableArray();
 

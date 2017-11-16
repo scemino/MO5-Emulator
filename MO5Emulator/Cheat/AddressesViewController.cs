@@ -12,7 +12,7 @@ namespace MO5Emulator
 	{
 		AppDelegate AppDelegate => (AppDelegate)NSApplication.SharedApplication.Delegate;
 		private Machine Machine => AppDelegate.Machine;
-		private Memory Memory => Machine.Memory;
+		private IMemory Memory => Machine.Memory;
 
 		private NSMutableArray<CheatModel> _cheats = new NSMutableArray<CheatModel>();
         private Dictionary<int,CheatModel> _cheatsDic = new Dictionary<int,CheatModel>();

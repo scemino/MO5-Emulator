@@ -164,6 +164,7 @@
     </Compile>
     <Compile Include="Cheat\MemorySearchSession.cs" />
     <Compile Include="LUAManager.cs" />
+    <Compile Include="Input\CocoaInput.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\Base.lproj\Main.storyboard" />

@@ -18,12 +18,12 @@ namespace MO5Emulator.Scripting
         public Dictionary<string, object> Get()
         {
             var input = new Dictionary<string, object>();
-			input["xmouse"] = _machine.Memory.LightPenX;
-			input["ymouse"] = _machine.Memory.LightPenY;
-            input["leftclick"] = _machine.Memory.LightPenClick;
-            for (int i = 0; i < _machine.Memory.Key.Length; i++)
+            input["xmouse"] = _machine.Input.LightPenX;
+            input["ymouse"] = _machine.Input.LightPenY;
+            input["leftclick"] = _machine.Input.LightPenClick;
+            for (int i = 0; i < 256; i++)
             {
-                if (_machine.Memory.Key[i])
+                if (_machine.Input.IsKeyPressed((Mo5Key)i))
                 {
                     input[ToKeyName((Mo5Key)i)] = true;
                 }

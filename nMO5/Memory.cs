@@ -14,7 +14,6 @@ namespace nMO5
     public class Memory : IMemory
     {
         private bool[] _dirty;
-        private bool[] _key;
         private readonly int[] _mapper;
 
         // 0 1          POINT   2
@@ -37,19 +36,9 @@ namespace nMO5
 
         private readonly byte[] _floppyRom;
         private IMachine _machine;
+        private IInput _input;
 
         public int SoundMem { get; private set; }
-
-        // Lightpen parameters  
-        public bool LightPenClick { get; set; }
-        public int LightPenX { get; set; }
-        public int LightPenY { get; set; }
-
-        // Joystick parameters
-        public int JoystickPosition { get; set; }
-        public int JoystickAction { get; set; }
-
-        public bool[] Key => _key;
 
         public event EventHandler<AddressWrittenEventArgs> Written;
 
@@ -62,9 +51,73 @@ namespace nMO5
             }
         }
 
-        public Memory(IMachine machine)
+        public IMachine Machine
         {
-            _machine = machine;
+            get { return _machine; }
+            set { _machine = value; }
+        }
+
+        private int JoystickAction
+        {
+            get
+            {
+                int joystickAction = 0;
+                if (!_input.Joystick1ButtonPressed)
+                {
+                    joystickAction |= 0x40;
+                }
+                if (!_input.Joystick2ButtonPressed)
+                {
+                    joystickAction |= 0x80;
+                }
+                return joystickAction;
+            }
+        }
+
+        private int JoystickPosition
+        {
+            get
+            {
+                int joystickPosition = 0;
+                if (!_input.Joystick1Orientation.HasFlag(JoystickOrientation.North))
+                {
+                    joystickPosition |= (int)JoystickOrientation.North;
+                }
+                if (!_input.Joystick1Orientation.HasFlag(JoystickOrientation.East))
+                {
+                    joystickPosition |= (int)JoystickOrientation.East;
+                }
+                if (!_input.Joystick1Orientation.HasFlag(JoystickOrientation.West))
+                {
+                    joystickPosition |= (int)JoystickOrientation.West;
+                }
+                if (!_input.Joystick1Orientation.HasFlag(JoystickOrientation.South))
+                {
+                    joystickPosition |= (int)JoystickOrientation.South;
+                }
+                if (!_input.Joystick2Orientation.HasFlag(JoystickOrientation.North))
+                {
+                    joystickPosition |= ((int)JoystickOrientation.North << 8);
+                }
+                if (!_input.Joystick2Orientation.HasFlag(JoystickOrientation.East))
+                {
+                    joystickPosition |= ((int)JoystickOrientation.East << 8);
+                }
+                if (!_input.Joystick2Orientation.HasFlag(JoystickOrientation.West))
+                {
+                    joystickPosition |= ((int)JoystickOrientation.West << 8);
+                }
+                if (!_input.Joystick2Orientation.HasFlag(JoystickOrientation.South))
+                {
+                    joystickPosition |= ((int)JoystickOrientation.South << 8);
+                }
+                return joystickPosition;
+            }
+        }
+
+        public Memory(IInput input)
+        {
+            _input = input;
             if (File.Exists("./bios/cd90-640.rom"))
             {
                 _floppyRom = File.ReadAllBytes("./bios/cd90-640.rom");
@@ -78,10 +131,7 @@ namespace nMO5
             _mapper = new[] {
                 0,1,4,5,6,7,8,9,10,11,12,13,14,15,16,17
             };
-            _key = new bool[256];
             _dirty = new bool[200];
-            JoystickPosition = 0xFF; // center of joystick 
-            JoystickAction = 0xC0;   // button released
 
             Reset();
         }
@@ -151,9 +201,9 @@ namespace nMO5
                     {
                         case 0xA7C0:
                             const int tapeDrivePresent = 0x80;
-                            return _ports[0] | tapeDrivePresent | (LightPenClick ? 0x20 : 0);
+                            return _ports[0] | tapeDrivePresent | (_input.LightPenClick ? 0x20 : 0);
                         case 0xA7C1:
-                            return _ports[1] | (_key[_ports[1] & 0xFE] ? 0 : 0x80);
+                            return _ports[1] | (_input.IsKeyPressed((Mo5Key)(_ports[1] & 0xFE)) ? 0 : 0x80);
                         case 0xA7C2:
                             return _ports[2];
                         case 0xA7C3:
@@ -163,7 +213,7 @@ namespace nMO5
                         case 0xA7CC:
                             return ((_ports[0x0E] & 4) != 0) ? JoystickPosition : _ports[0x0C];
                         case 0xA7CD:
-                            return ((_ports[0x0F] & 4) != 0) ? JoystickAction : _ports[0x0D];
+                            return ((_ports[0x0F] & 4) != 0) ? JoystickAction | SoundMem : _ports[0x0D];
                         case 0xA7CE:
                             return 4;
                         case 0xA7D8:
@@ -172,7 +222,7 @@ namespace nMO5
                         case 0xA7E6: return _machine.Iniln() << 1;
                         case 0xA7E7: return _machine.Initn();
                         default:
-                            if (address >= 0xA7CF && address < 0xA800)
+                            if (address < 0xA800)
                             {
                                 return (_ports[address & 0x3F]);
                             }
@@ -231,10 +281,6 @@ namespace nMO5
             return ret;
         }
 
-        public void SetKey(int i) => _key[i] = true;
-
-        public void RemKey(int i) => _key[i] = false;
-
         public void OpenMemo(Stream memo)
         {
             _carsize = Math.Min(memo.Length, 0x10000);
@@ -252,33 +298,33 @@ namespace nMO5
             _carflags = 0;
             LoadRom();
         }
-        
+
         private void WriteCore(int address, int value)
         {
             var page = (address & 0xF000) >> 12;
-
-            if (_mapper[page] >= 14 && _mapper[page] <= 17)
-                return; // Protection en écriture de la ROM
-
             if (address < 0x1F40)
             {
                 _dirty[address / 40] = true;
             }
-            if (page == 0x0A)
+            switch (page)
             {
-                Hardware(address, value);
-            }
-            else if (page == 0x0B || page == 0x0C || page == 0x0D
-                     || page == 0x0E)
-            {
-                if (((_carflags & 8) != 0) && (_cartype == 0))
-                {
+                case 0x0A:
+                    Hardware(address, value);
+                    break;
+                case 0x0B:
+                case 0x0C:
+                case 0x0D:
+                case 0x0E:
+                    if (((_carflags & 8) != 0) && (_cartype == 0))
+                    {
+                        _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+                    }
+                    break;
+                case 0x0F:
+                    break;
+                default:
                     _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-                }
-            }
-            else
-            {
-                _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
+                    break;
             }
         }
 
@@ -290,40 +336,10 @@ namespace nMO5
             LoadRom();
         }
 
-        // write with io without Protection
-        private void WriteP(int address, int value)
-        {
-            var page = (address & 0xF000) >> 12;
-            if (address < 0x1F40)
-            {
-                _dirty[address / 40] = true;
-            }
-            if (page == 0x0A)
-            {
-                Hardware(address, value);
-                return;
-            }
-            if (page == 0x0B || page == 0x0C || page == 0x0D || page == 0x0E)
-            {
-                if (((_carflags & 8) != 0) && (_cartype == 0))
-                {
-                    _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-                    return;
-                }
-            }
-            _mem[_mapper[page]][address & 0xFFF] = value & 0xFF;
-            Written?.Invoke(this, new AddressWrittenEventArgs(address, 1, value & 0xFF));
-        }
-
         private void Reset()
         {
             _carflags &= 0xEC;
             LoadRom();
-
-            _mem[0xA + 2][0x7CC] = 0xFF;
-            _mem[0xA + 2][0x7CD] = 0xFF;
-            _mem[0xA + 2][0x7CE] = 0xFF;
-            _mem[0xA + 2][0x7CF] = 0xFF;
         }
 
         private void LoadRom()
@@ -356,7 +372,7 @@ namespace nMO5
                 {
                     for (var i = startingAddress; i < 0x10000; i++)
                     {
-                        WriteP(i, fis.ReadByte());
+                        Set(i, fis.ReadByte());
                     }
                 }
             }
@@ -374,7 +390,7 @@ namespace nMO5
             {
                 case 0xA7C0:
                     _ports[0] = op & 0x5F;
-                    if ((op & 0x01) == 0x01)
+                    if ((op & 0x01) != 0)
                     {
                         _mapper[0] = 0;
                         _mapper[1] = 1;

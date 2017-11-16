@@ -4,11 +4,11 @@ using static nMO5.Util;
 
 namespace nMO5
 {
-    public class M6809
+    public class M6809 : IM6809
     {
         private const int SoundSize = 1024;
 
-        private readonly IMemory _mem;
+        private IMemory _mem;
 
         // Sound emulation parameters
         public byte[] SoundBuffer { get; }
@@ -16,7 +16,7 @@ namespace nMO5
         private int _soundAddr;
         private readonly ISound _play;
 
-		private int _clock;
+        private int _clock;
         private int _instructionsCount;
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace nMO5
             }
         }
 
-		public int CyclesCount => _clock;
+        public int CyclesCount => _clock;
         public int InstructionsCount { get => _instructionsCount; }
 
         // fast CC bits (as ints) 
@@ -87,15 +87,25 @@ namespace nMO5
 
         public event EventHandler<OpcodeExecutedEventArgs> OpcodeExecuted;
 
-        public M6809(IMemory mem, ISound play)
+        int IM6809.RegA { get { return A; } set { A = value; } }
+        int IM6809.RegB { get { return B; } set { B = value; } }
+        int IM6809.RegS { get { return S; } set { S = value; } }
+        int IM6809.RegPc { get { return Pc; } set { Pc = value; } }
+        int IM6809.RegCc { get { Getcc(); return Cc; } set { Cc = value; Updatecc(); } }
+        int IM6809.RegD { get { return D; } set { D = value; } }
+        int IM6809.RegDp { get { return Dp; } set { Dp = value; } }
+        int IM6809.RegU { get { return U; } set { U = value; } }
+        int IM6809.RegX { get { return X; } set { X = value; } }
+        int IM6809.RegY { get { return Y; } set { Y = value; } }
+
+        public IMemory Memory { get => _mem; set => _mem = value; }
+
+        public M6809(ISound play)
         {
-            _mem = mem;
             _play = play;
 
             SoundBuffer = new byte[SoundSize];
             _soundAddr = 0;
-
-            Reset();
         }
 
         public void SaveState(Stream stream)
@@ -140,15 +150,15 @@ namespace nMO5
             _instructionsCount = 0;
         }
 
-		public void ResetClock()
-		{
-			_clock = 0;
-		}
+        public void ResetClock()
+        {
+            _clock = 0;
+        }
 
-		public void ResetInstructionsCount()
-		{
-			_instructionsCount = 0;
-		}
+        public void ResetInstructionsCount()
+        {
+            _instructionsCount = 0;
+        }
 
         // basic 6809 addressing modes
         private int Immed8()
@@ -670,27 +680,25 @@ namespace nMO5
         }
 
         // cc register recalculate from separate bits
-        private int Getcc()
+        public int Getcc()
         {
-            if ((_res & 0xff) == 0)
-                Cc = ((((_h1 & 15) + (_h2 & 15)) & 16) << 1)
-                      | ((_sign & 0x80) >> 4)
-                      | 4
-                      | ((~(_m1 ^ _m2) & (_m1 ^ _ovfl) & 0x80) >> 6)
-                      | ((_res & 0x100) >> 8)
-                      | _ccrest;
-            else
-                Cc = ((((_h1 & 15) + (_h2 & 15)) & 16) << 1)
-                      | ((_sign & 0x80) >> 4)
-                      | ((~(_m1 ^ _m2) & (_m1 ^ _ovfl) & 0x80) >> 6)
-                      | ((_res & 0x100) >> 8)
-                      | _ccrest;
+            Cc = ((((_h1 & 15) + (_h2 & 15)) & 16) << 1)
+                  | ((_sign & 0x80) >> 4)
+                  | (((_res & 0xff) == 0) ? 4 : 0)
+                  | ((~(_m1 ^ _m2) & (_m1 ^ _ovfl) & 0x80) >> 6)
+                  | ((_res & 0x100) >> 8)
+                  | _ccrest;
 
             return Cc;
         }
 
+        public void Updatecc()
+        {
+            Setcc(Cc);
+        }
+
         // calculate CC fast bits from CC register
-        public void Setcc(int i)
+        private void Setcc(int i)
         {
             _m1 = _m2 = 0;
             _res = ((i & 1) << 8) | (4 - (i & 4));
@@ -2420,6 +2428,7 @@ namespace nMO5
         {
             /* mise � 1 du bit E sur le CC */
             Getcc();
+            if ((Cc & 0x10) != 0) return;
             Cc |= 0x80;
             Setcc(Cc);
             S--;
@@ -2446,10 +2455,10 @@ namespace nMO5
             _mem.Write(S, A);
             S--;
             _mem.Write(S, Cc);
-            Pc = (_mem.Read(0xFFF8) << 8) | _mem.Read(0xFFF9);
+            Pc = _mem.Read16(0xFFF8);
             Cc |= 0x10;
             Setcc(Cc);
-            _clock += 19;
+            _clock += 12;
         }
 
         private void Daa()
@@ -2477,7 +2486,7 @@ namespace nMO5
             int pc = Pc;
             int opcode = _mem.Read(Pc);
             int opcode0X10 = 0;
-			int opcode0X11 = 0;
+            int opcode0X11 = 0;
             Pc++;
 
             // 	Sound emulation process

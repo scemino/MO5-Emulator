@@ -12,7 +12,7 @@ namespace MO5Emulator.Base.lproj
     public partial class SearchCheatViewController : NSViewController
     {
         private AppDelegate AppDelegate => (AppDelegate)NSApplication.SharedApplication.Delegate;
-        private Memory Memory => AppDelegate.Machine.Memory;
+        private IMemory Memory => AppDelegate.Machine.Memory;
 
         private Dictionary<int, MemorySearchSession> _values = new Dictionary<int, MemorySearchSession>();
         private HashSet<int> _adresses = new HashSet<int>();

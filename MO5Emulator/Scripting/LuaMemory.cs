@@ -8,7 +8,7 @@ namespace MO5Emulator.Scripting
     class LuaMemory
     {
         private Machine _machine;
-        private Memory _memory;
+        private IMemory _memory;
         private readonly Dictionary<AddressRange, Closure> _registerExecActions;
         private readonly Dictionary<AddressRange, Closure> _registerWrittenActions;
 
@@ -69,25 +69,25 @@ namespace MO5Emulator.Scripting
             switch (registerName)
             {
                 case "pc":
-                    return _machine.Cpu.Pc;
+                    return _machine.Cpu.RegPc;
 				case "a":
-					return _machine.Cpu.A;
+                    return _machine.Cpu.RegA;
 				case "b":
-					return _machine.Cpu.B;
+                    return _machine.Cpu.RegB;
 				case "cc":
-					return _machine.Cpu.Cc;
+                    return _machine.Cpu.RegCc;
 				case "d":
-                    return _machine.Cpu.D;
+                    return _machine.Cpu.RegD;
 				case "dp":
-					return _machine.Cpu.Dp;
+                    return _machine.Cpu.RegDp;
 				case "s":
-					return _machine.Cpu.S;
+                    return _machine.Cpu.RegS;
 				case "u":
-					return _machine.Cpu.U;
+                    return _machine.Cpu.RegU;
 				case "x":
-					return _machine.Cpu.X;
+                    return _machine.Cpu.RegX;
 				case "y":
-					return _machine.Cpu.Y;
+                    return _machine.Cpu.RegY;
             }
             return 0;
         }
@@ -97,25 +97,25 @@ namespace MO5Emulator.Scripting
 			switch (registerName)
 			{
 				case "pc":
-                    return _machine.Cpu.Pc = value;
+                    return _machine.Cpu.RegPc = value;
 				case "a":
-					return _machine.Cpu.A = value;
+                    return _machine.Cpu.RegA = value;
 				case "b":
-					return _machine.Cpu.B = value;
+                    return _machine.Cpu.RegB = value;
 				case "cc":
-					return _machine.Cpu.Cc = value;
+                    return _machine.Cpu.RegCc = value;
 				case "d":
-					return _machine.Cpu.D = value;
+                    return _machine.Cpu.RegD = value;
 				case "dp":
-					return _machine.Cpu.Dp = value;
+                    return _machine.Cpu.RegDp = value;
 				case "s":
-					return _machine.Cpu.S = value;
+                    return _machine.Cpu.RegS = value;
 				case "u":
-					return _machine.Cpu.U = value;
+                    return _machine.Cpu.RegU = value;
 				case "x":
-					return _machine.Cpu.X = value;
+                    return _machine.Cpu.RegX = value;
 				case "y":
-					return _machine.Cpu.Y = value;
+                    return _machine.Cpu.RegY = value;
 			}
 			return 0;
 		}

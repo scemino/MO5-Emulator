@@ -3,6 +3,7 @@ using System.IO;
 
 namespace nMO5
 {
+    [Flags]
     public enum JoystickOrientation
     {
         North = 1,
@@ -19,9 +20,8 @@ namespace nMO5
 
     public class Machine: IMachine
     {
-        private readonly Memory _mem;
-        private readonly M6809 _cpu;
-        private readonly Keyboard _keyboard;
+        private readonly IMemory _mem;
+        private readonly IM6809 _cpu;
         private FileStream _fPrinter;
         private int _k7Bit;
         private int _k7Byte;
@@ -39,11 +39,11 @@ namespace nMO5
         public string DiskPath { get; private set; }
         public string MemoPath { get; private set; }
 
-        public Memory Memory => _mem;
-        public Keyboard Keyboard => _keyboard;
-        public M6809 Cpu => _cpu;
+        public IMemory Memory => _mem;
+        public IM6809 Cpu => _cpu;
         public Screen Screen { get; }
         public ISound Sound { get; }
+        public IInput Input { get; }
 
         public int FrameCount { get; private set; }
         public bool IsScriptRunning { get; set; }
@@ -51,13 +51,15 @@ namespace nMO5
         public event EventHandler IndexChanged;
         public event EventHandler Stepping;
 
-        public Machine(ISound sound)
+        public Machine(ISound sound, IM6809 cpu, IInput input, IMemory memory)
         {
-            _mem = new Memory(this);
+            _mem = memory;
             Sound = sound;
-            _cpu = new M6809(_mem, sound);
+            Input = input;
+            cpu.Memory = _mem;
+            _cpu = cpu;
+            cpu.Reset();
             Screen = new Screen(_mem);
-            _keyboard = new Keyboard(_mem);
         }
 
         public void SaveState(Stream stream)
@@ -134,60 +136,12 @@ namespace nMO5
         {
             _videoLineCycle = 0;
             _videoLineNumber = 0;
-            for (var i = 0x2000; i < 0x3000; i++)
-            {
-                _mem.Set(i, 0);
-            }
+            //for (var i = 0x2000; i < 0x3000; i++)
+            //{
+            //    _mem.Set(i, 0);
+            //}
             _mem.CloseMemo();
             _cpu.Reset();
-        }
-
-        public void Joystick1(JoystickOrientation orientation, bool isPressed)
-        {
-            if (isPressed)
-            {
-                _mem.JoystickPosition &= ~(int)orientation;
-            }
-            else
-            {
-                _mem.JoystickPosition |= (int)orientation;
-            }
-        }
-
-        public void Joystick2(JoystickOrientation orientation, bool isPressed)
-        {
-            if (isPressed)
-            {
-                _mem.JoystickPosition &= ~((int)orientation << 8);
-            }
-            else
-            {
-                _mem.JoystickPosition |= ((int)orientation << 8);
-            }
-        }
-
-        public void Joystick1Button(bool isPressed)
-        {
-            if (isPressed)
-            {
-                _mem.JoystickAction &= ~0x40;
-            }
-            else
-            {
-                _mem.JoystickAction |= 0x40;
-            }
-        }
-
-        public void Joystick2Button(bool isPressed)
-        {
-            if (isPressed)
-            {
-                _mem.JoystickAction &= ~0x80;
-            }
-            else
-            {
-                _mem.JoystickAction |= 0x80;
-            }
         }
 
         private void EjectAll()
@@ -211,16 +165,16 @@ namespace nMO5
                 IndexChanged?.Invoke(this, EventArgs.Empty);
             }
 
-            Cpu.A = _k7Byte;
-            _mem.Set(0x2045, 0);
+            Cpu.RegA = _k7Byte;
+            _mem.Write(0x2045, 0);
             _k7Bit = 0;
         }
 
         private void WriteK7Byte()
         {
             if (!IsFileOpened) return;
-            _k7FileStream.WriteByte((byte)Cpu.A);
-            _mem.Set(0x2045, 0);
+            _k7FileStream.WriteByte((byte)Cpu.RegA);
+            _mem.Write(0x2045, 0);
         }
 
         private void ReadSector()
@@ -276,7 +230,7 @@ namespace nMO5
             }
         }
 
-        private void ReadBit(M6809 machine)
+        private void ReadBit(IM6809 machine)
         {
             if (!IsFileOpened) return;
 
@@ -297,16 +251,16 @@ namespace nMO5
             var octet = _mem.Read(0x2045) << 1;
             if ((_k7Byte & _k7Bit) == 0)
             {
-                machine.A = 0;
+                machine.RegA = 0;
             }
             else
             {
                 octet |= 0x01;
-                machine.A = 0xFF;
+                machine.RegA = 0xFF;
 
             }
             // positionne l'octet dans la page 0 du moniteur
-            _mem.Set(0x2045, octet & 0xFF);
+            _mem.Write(0x2045, octet & 0xFF);
 
             _k7Bit = _k7Bit >> 1;
         }
@@ -391,12 +345,11 @@ namespace nMO5
 
         private void ReadPenXy()
         {
-            if ((_mem.LightPenX < 0) || (_mem.LightPenX >= 320)) { Cpu.Cc |= 1; Cpu.Setcc(Cpu.Cc); return; }
-            if ((_mem.LightPenY < 0) || (_mem.LightPenY >= 200)) { Cpu.Cc |= 1; Cpu.Setcc(Cpu.Cc); return; }
-            _mem.Write16(Cpu.S + 6, _mem.LightPenX);
-            _mem.Write16(Cpu.S + 8, _mem.LightPenY);
-            Cpu.Cc &= 0xFE;
-            Cpu.Setcc(Cpu.Cc);
+            if ((Input.LightPenX < 0) || (Input.LightPenX >= 320)) { Cpu.RegCc |= 1; return; }
+            if ((Input.LightPenY < 0) || (Input.LightPenY >= 200)) { Cpu.RegCc |= 1; return; }
+            _mem.Write16(Cpu.RegS + 6, (short)Input.LightPenX);
+            _mem.Write16(Cpu.RegS + 8, (short)Input.LightPenY);
+            Cpu.RegCc &= 0xFE;
         }
 
         private void Print()
@@ -405,9 +358,8 @@ namespace nMO5
             {
                 _fPrinter = File.OpenWrite("mo5-printer.txt");
             }
-            _fPrinter.WriteByte((byte)Cpu.B);
-            Cpu.Cc &= 0xFE;
-            Cpu.Setcc(Cpu.Cc);
+            _fPrinter.WriteByte((byte)Cpu.RegB);
+            Cpu.RegCc &= 0xFE;
         }
     }
 }
