@@ -17,6 +17,7 @@ namespace nMO5.Testing
             {
                 Memory = _mockMem.Object
             };
+            _cpu.Reset();
         }
 
         [Fact]
