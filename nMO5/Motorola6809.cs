@@ -98,11 +98,12 @@ namespace nMO5
         int IM6809.RegX { get { return X; } set { X = value; } }
         int IM6809.RegY { get { return Y; } set { Y = value; } }
 
-        public IMemory Memory { get => _mem; set => _mem = value; }
+        private IMemory Memory => _mem;
 
-        public M6809(ISound play)
+        public M6809(IMemory memory, ISound play)
         {
             _play = play;
+            _mem = memory;
 
             SoundBuffer = new byte[SoundSize];
             _soundAddr = 0;
@@ -680,7 +681,7 @@ namespace nMO5
         }
 
         // cc register recalculate from separate bits
-        public int Getcc()
+        private int Getcc()
         {
             Cc = ((((_h1 & 15) + (_h2 & 15)) & 16) << 1)
                   | ((_sign & 0x80) >> 4)
@@ -692,7 +693,7 @@ namespace nMO5
             return Cc;
         }
 
-        public void Updatecc()
+        private void Updatecc()
         {
             Setcc(Cc);
         }
@@ -706,12 +707,6 @@ namespace nMO5
             _sign = (i & 8) << 4;
             _h1 = _h2 = (i & 32) >> 2;
             _ccrest = i & 0xd0;
-        }
-
-        public int ReadCc()
-        {
-            Getcc();
-            return Cc;
         }
 
         // LDx

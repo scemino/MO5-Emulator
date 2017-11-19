@@ -21,9 +21,9 @@ namespace MO5Emulator
         public AppDelegate()
         {
             var sound = new DummySound();
-            var cpu = new M6809(sound);
             var input = new CocoaInput();
             var mem = new Memory(input);
+            var cpu = new M6809(mem, sound);
             _machine = new Machine(sound, cpu, input, mem);
             mem.Machine = _machine;
             _luaManager = new LUAManager(_machine);

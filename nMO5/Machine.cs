@@ -56,7 +56,6 @@ namespace nMO5
             _mem = memory;
             Sound = sound;
             Input = input;
-            cpu.Memory = _mem;
             _cpu = cpu;
             cpu.Reset();
             Screen = new Screen(_mem);
@@ -91,8 +90,6 @@ namespace nMO5
                 _indexMax = _k7FileStream.Length >> 9;
                 _index = 0;
                 IndexChanged?.Invoke(this, EventArgs.Empty);
-
-                _k7FileStream.Seek(0, SeekOrigin.Begin);
 
             }
             catch (Exception e)

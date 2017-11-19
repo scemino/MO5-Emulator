@@ -13,10 +13,7 @@ namespace nMO5.Testing
         {
             _mockMem = new Mock<IMemory>();
             _mockSound = new Mock<ISound>();
-            _cpu = new M6809(_mockSound.Object)
-            {
-                Memory = _mockMem.Object
-            };
+            _cpu = new M6809(_mockMem.Object, _mockSound.Object);
             _cpu.Reset();
         }
 

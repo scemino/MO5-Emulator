@@ -7,8 +7,6 @@ namespace nMO5
     {
         event EventHandler<OpcodeExecutedEventArgs> OpcodeExecuted;
 
-        IMemory Memory { get; set; }
-
         int RegA { get; set; }
         int RegB { get; set; }
         int RegCc { get; set; }
