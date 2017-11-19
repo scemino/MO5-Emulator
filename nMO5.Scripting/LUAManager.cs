@@ -6,13 +6,23 @@ using nMO5;
 
 namespace MO5Emulator
 {
-    internal class LUAManager
+    public class ScriptErrorEventArgs: EventArgs
+    {
+        public Exception Exception { get; }
+
+        public ScriptErrorEventArgs(Exception e)
+        {
+            Exception = e;
+        }
+    }
+
+    public class LUAManager
     {
         private Thread _scriptThread;
         private readonly Script _script;
         private readonly Machine _machine;
 
-        public EventHandler<Exception> ScriptError;
+        public EventHandler<ScriptErrorEventArgs> ScriptError;
 
         public LUAManager(Machine machine)
         {
@@ -72,7 +82,7 @@ namespace MO5Emulator
             }
             catch (Exception e)
             {
-                ScriptError?.Invoke(this, e);
+                ScriptError?.Invoke(this, new ScriptErrorEventArgs(e));
             }
         }
     }

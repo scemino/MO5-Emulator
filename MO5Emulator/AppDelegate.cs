@@ -181,9 +181,9 @@ namespace MO5Emulator
             return Path.ChangeExtension(Machine.K7Path, ".m5s");
         }
 
-        private void OnScriptError(object sender, Exception e)
+        private void OnScriptError(object sender, ScriptErrorEventArgs e)
         {
-            if (e is InterpreterException interpreterException)
+            if (e.Exception is InterpreterException interpreterException)
             {
                 InvokeOnMainThread(() =>
                 {
@@ -204,7 +204,7 @@ namespace MO5Emulator
                 InvokeOnMainThread(() =>
                 {
                     var msgFormat = NSBundle.MainBundle.LocalizedString("An unknown error occured in the LUA script!\n{0}.", null);
-                    var message = string.Format(msgFormat, e.Message);
+                    var message = string.Format(msgFormat, e.Exception.Message);
                     var alert = new NSAlert
                     {
                         AlertStyle = NSAlertStyle.Critical,

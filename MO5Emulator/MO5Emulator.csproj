@@ -99,7 +99,6 @@
     <Folder Include="Assets.xcassets\Remove.imageset\" />
     <Folder Include="Assets.xcassets\Edit.imageset\" />
     <Folder Include="Assets.xcassets\Search.imageset\" />
-    <Folder Include="Scripting\" />
     <Folder Include="Cheat\" />
   </ItemGroup>
   <ItemGroup>
@@ -124,14 +123,6 @@
     <Compile Include="Input\VirtualKey.cs" />
     <Compile Include="Input\KeyMappings.cs" />
     <Compile Include="Audio\DummySound.cs" />
-    <Compile Include="Scripting\LuaMemory.cs" />
-    <Compile Include="Scripting\LuaGui.cs" />
-    <Compile Include="Scripting\LuaColor.cs" />
-    <Compile Include="Scripting\LuaEmu.cs" />
-    <Compile Include="Scripting\LuaSaveState.cs" />
-    <Compile Include="Scripting\AddressRange.cs" />
-    <Compile Include="Scripting\LuaInput.cs" />
-    <Compile Include="Scripting\LuaDebugger.cs" />
     <Compile Include="Cheat\CheatModel.cs" />
     <Compile Include="Cheat\CheatModel.designer.cs">
       <DependentUpon>CheatModel.cs</DependentUpon>
@@ -164,7 +155,6 @@
       <DependentUpon>SearchCheatViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Cheat\MemorySearchSession.cs" />
-    <Compile Include="LUAManager.cs" />
     <Compile Include="Input\CocoaInput.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -175,6 +165,10 @@
     <ProjectReference Include="..\nMO5\nMO5.csproj">
       <Project>{03CC6F59-DA79-4418-83FF-DAF22B28D098}</Project>
       <Name>nMO5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\nMO5.Scripting\nMO5.Scripting.csproj">
+      <Project>{C3BF61CA-5266-4D84-A6FF-414F2317208E}</Project>
+      <Name>nMO5.Scripting</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

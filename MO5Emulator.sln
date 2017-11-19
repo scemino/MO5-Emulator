@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MO5Emulator", "MO5Emulator\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nMO5.Testing", "nMO5.Testing\nMO5.Testing.csproj", "{9109CB42-1A0D-4B75-9CAD-8018EF697DC5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nMO5.Scripting", "nMO5.Scripting\nMO5.Scripting.csproj", "{C3BF61CA-5266-4D84-A6FF-414F2317208E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -25,5 +27,9 @@ Global
 		{9109CB42-1A0D-4B75-9CAD-8018EF697DC5}.Debug|x86.Build.0 = Debug|Any CPU
 		{9109CB42-1A0D-4B75-9CAD-8018EF697DC5}.Release|x86.ActiveCfg = Release|Any CPU
 		{9109CB42-1A0D-4B75-9CAD-8018EF697DC5}.Release|x86.Build.0 = Release|Any CPU
+		{C3BF61CA-5266-4D84-A6FF-414F2317208E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C3BF61CA-5266-4D84-A6FF-414F2317208E}.Debug|x86.Build.0 = Debug|Any CPU
+		{C3BF61CA-5266-4D84-A6FF-414F2317208E}.Release|x86.ActiveCfg = Release|Any CPU
+		{C3BF61CA-5266-4D84-A6FF-414F2317208E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
