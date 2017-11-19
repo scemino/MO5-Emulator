@@ -51,9 +51,6 @@
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.Mac" />
     <Reference Include="OpenTK" />
-    <Reference Include="MoonSharp.Interpreter">
-      <HintPath>..\packages\MoonSharp.2.0.0.0\lib\netstandard1.6\MoonSharp.Interpreter.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
@@ -104,7 +101,6 @@
   <ItemGroup>
     <None Include="Info.plist" />
     <None Include="Entitlements.plist" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.cs" />

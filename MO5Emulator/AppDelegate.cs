@@ -5,7 +5,6 @@ using AppKit;
 using Foundation;
 using MO5Emulator.Audio;
 using MO5Emulator.Input;
-using MoonSharp.Interpreter;
 using nMO5;
 
 namespace MO5Emulator
@@ -183,38 +182,19 @@ namespace MO5Emulator
 
         private void OnScriptError(object sender, ScriptErrorEventArgs e)
         {
-            if (e.Exception is InterpreterException interpreterException)
+            InvokeOnMainThread(() =>
             {
-                InvokeOnMainThread(() =>
+                var msgFormat = NSBundle.MainBundle.LocalizedString("An unknown error occured in the LUA script!\n{0}.", null);
+                var message = string.Format(msgFormat, e.Exception.Message);
+                var alert = new NSAlert
                 {
-                    var msgFormat = NSBundle.MainBundle.LocalizedString("An error occured in the LUA script!\n{0}.", null);
-                    var message = string.Format(msgFormat, interpreterException.DecoratedMessage);
-                    var alert = new NSAlert
-                    {
-                        AlertStyle = NSAlertStyle.Critical,
-                        InformativeText = message,
-                        MessageText = NSBundle.MainBundle.LocalizedString("Oops", null),
-                    };
-                    alert.RunModal();
-                    _machine.IsScriptRunning = false;
-                });
-            }
-            else
-            {
-                InvokeOnMainThread(() =>
-                {
-                    var msgFormat = NSBundle.MainBundle.LocalizedString("An unknown error occured in the LUA script!\n{0}.", null);
-                    var message = string.Format(msgFormat, e.Exception.Message);
-                    var alert = new NSAlert
-                    {
-                        AlertStyle = NSAlertStyle.Critical,
-                        InformativeText = message,
-                        MessageText = NSBundle.MainBundle.LocalizedString("Oops", null),
-                    };
-                    alert.RunModal();
-                    Machine.IsScriptRunning = false;
-                });
-            }
+                    AlertStyle = NSAlertStyle.Critical,
+                    InformativeText = message,
+                    MessageText = NSBundle.MainBundle.LocalizedString("Oops", null),
+                };
+                alert.RunModal();
+                Machine.IsScriptRunning = false;
+            });
         }
     }
 }

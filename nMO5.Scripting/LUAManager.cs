@@ -80,6 +80,10 @@ namespace MO5Emulator
             {
                 _script.DoFile(file);
             }
+            catch (InterpreterException e)
+            {
+                ScriptError?.Invoke(this, new ScriptErrorEventArgs(new LUAInterpreterException(e.DecoratedMessage, e)));
+            }
             catch (Exception e)
             {
                 ScriptError?.Invoke(this, new ScriptErrorEventArgs(e));
