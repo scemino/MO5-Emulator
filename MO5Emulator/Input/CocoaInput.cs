@@ -35,8 +35,9 @@ namespace MO5Emulator.Input
             }
             else
             {
-                KeyReleased(Mo5Key.Shift);
+                ClearKeys();
             }
+
             if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ControlKeyMask))
             {
                 KeyPressed(Mo5Key.Control);
@@ -45,6 +46,7 @@ namespace MO5Emulator.Input
             {
                 KeyReleased(Mo5Key.Control);
             }
+
             if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.CommandKeyMask))
             {
                 KeyPressed(Mo5Key.Basic);
@@ -59,7 +61,7 @@ namespace MO5Emulator.Input
         {
             if (theEvent.CharactersIgnoringModifiers.Length == 0) return;
             var c = theEvent.CharactersIgnoringModifiers[0];
-            Do(c, KeyPressed);
+            Do(c, true);
 
             if (KeyMappings.Joystick1Orientations.TryGetValue(c, out JoystickOrientation orientation))
             {
@@ -86,7 +88,7 @@ namespace MO5Emulator.Input
         {
             if (theEvent.CharactersIgnoringModifiers.Length == 0) return;
             var c = theEvent.CharactersIgnoringModifiers[0];
-            Do(c, KeyReleased);
+            Do(c, false);
 
             if (KeyMappings.Joystick1Orientations.TryGetValue(c, out JoystickOrientation orientation))
             {
@@ -119,12 +121,12 @@ namespace MO5Emulator.Input
             LightPenY = y;
         }
 
-        private void Do(char c, Action<Mo5Key> action)
+        private void Do(char c, bool keyPressed)
         {
             if (!KeyMappings.Keys.TryGetValue(c, out VirtualKey key))
                 return;
 
-            if (key.ShiftKey.HasValue && key.ShiftKey.Value)
+            if (key.ShiftKey && keyPressed)
             {
                 KeyPressed(Mo5Key.Shift);
             }
@@ -133,7 +135,14 @@ namespace MO5Emulator.Input
                 KeyReleased(Mo5Key.Shift);
             }
 
-            action(key.Key);
+            if (keyPressed)
+            {
+                KeyPressed(key.Key);
+            }
+            else
+            {
+                KeyReleased(key.Key);
+            }
         }
 
         private void KeyPressed(Mo5Key key)
@@ -144,6 +153,11 @@ namespace MO5Emulator.Input
         private void KeyReleased(Mo5Key key)
         {
             _key[(int)key] = false;
+        }
+
+        private void ClearKeys()
+        {
+            Array.Clear(_key, 0, _key.Length);
         }
     }
 }

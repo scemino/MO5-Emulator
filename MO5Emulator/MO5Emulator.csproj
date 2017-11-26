@@ -170,7 +170,6 @@
   <ItemGroup>
     <BundleResource Include="Resources\bios\cd90-640.rom" />
     <BundleResource Include="Resources\bios\mo5.rom" />
-    <BundleResource Include="Resources\.DS_Store" />
     <BundleResource Include="Resources\fr.lproj\Localizable.strings" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
